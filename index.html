@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>認知行動療法専門カウンセラー 試験対策</title>
+
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fa;margin:0;padding:12px}
+.card{background:#fff;border-radius:14px;padding:20px;max-width:720px;margin:auto;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+select,button{width:100%;padding:12px;font-size:15px;border-radius:8px;border:none}
+select{margin-bottom:12px}
+.choice{background:#e9eef5;margin-bottom:8px}
+.next{background:#4a6cf7;color:#fff;margin-top:12px}
+.result{font-weight:bold;margin-top:10px}
+.explain{font-size:14px;margin-top:6px}
+</style>
+</head>
+
+<body>
+<div class="card">
+
+<select id="cat" onchange="changeCat()">
+<option value="A">A：うつ病CBT</option>
+<option value="B">B：発達障害×就労支援</option>
+<option value="C">C：行動分析</option>
+<option value="D">D：アセスメント</option>
+<option value="E">E：エクスポージャー</option>
+<option value="F">F：ウェルビーイング</option>
+<option value="G">G：困難事例</option>
+<option value="H">H：ACT</option>
+<option value="I">I：依存症CBT</option>
+</select>
+
+<h3 id="num"></h3>
+<div id="q"></div>
+
+<button class="choice" onclick="ans('A')" id="A"></button>
+<button class="choice" onclick="ans('B')" id="B"></button>
+<button class="choice" onclick="ans('C')" id="C"></button>
+<button class="choice" onclick="ans('D')" id="D"></button>
+
+<div class="result" id="res"></div>
+<div class="explain" id="exp"></div>
+
+<button class="next" onclick="nextQ()">次の問題 ▶</button>
+
+</div>
+
+<script>
+const Q={
+A:[
+{n:"1",q:"CBTの基本的考え方で正しいものは？",A:"感情は環境のみで決まる",B:"過去体験のみが原因",C:"認知・感情・行動は相互作用",D:"洞察が最重要",c:"C",e:"CBTは相互作用モデルを基本とする"},
+{n:"2",q:"自動思考の特徴で不適切なものは？",A:"瞬間的",B:"事実のように感じる",C:"論理的検討後に生じる",D:"否定的内容",c:"C",e:"自動思考は瞬時に浮かぶ"},
+{n:"3",q:"うつ病CBT初期で重要な技法は？",A:"曝露反応妨害",B:"行動活性化",C:"催眠",D:"系統的脱感作",c:"B",e:"初期は行動から変える"},
+/* …… A分野は問題1〜20 …… */
+],
+B:[
+{n:"21",q:"発達障害就労支援CBTの目的は？",A:"特性をなくす",B:"環境を完全変更",C:"対処スキル向上",D:"性格矯正",c:"C",e:"CBTは適応力向上が目的"},
+/* …… 21〜30 …… */
+],
+C:[
+{n:"31",q:"ABC分析のAは？",A:"結果",B:"行動",C:"先行条件",D:"評価",c:"C",e:"AはAntecedent"},
+/* …… 31〜40 …… */
+],
+D:[
+{n:"41",q:"CBTアセスメントの本質は？",A:"診断確定",B:"原因特定",C:"支援方向を共に考える",D:"評価する",c:"C",e:"支援の仮説作り"},
+/* …… 41〜50 …… */
+],
+E:[
+{n:"51",q:"エクスポージャーの目的は？",A:"不安を消す",B:"刺激回避",C:"回避で維持された不安を弱める",D:"原因分析",c:"C",e:"回避の悪循環を断つ"},
+/* …… 51〜60 …… */
+],
+F:[
+{n:"61",q:"ウェルビーイングCBTで重要なのは？",A:"前向き強制",B:"幸福の押し付け",C:"本人のペース尊重",D:"成功体験のみ",c:"C",e:"選択を尊重する"},
+/* …… 61〜70 …… */
+],
+G:[
+{n:"71",q:"困難事例対応の本質は？",A:"高度技法",B:"説得",C:"フォーミュレーション更新",D:"原因追及",c:"C",e:"理解し直す柔軟性"},
+/* …… 71〜80 …… */
+],
+H:[
+{n:"81",q:"ACTの基本目標は？",A:"思考修正",B:"症状低減",C:"心理的柔軟性向上",D:"症状消失",c:"C",e:"価値に沿った行動"},
+/* …… 81〜90 …… */
+],
+I:[
+{n:"99",q:"依存症CBT再発予防で重要なのは？",A:"恐怖強化",B:"ハイリスク状況特定と対処",C:"厳格禁止",D:"依存関係",c:"B",e:"再発予防の核心"},
+{n:"100",q:"依存症CBTの本質は？",A:"禁止",B:"意志力強化",C:"行動機能理解と選択肢増加",D:"症状消失",c:"C",e:"選択肢を増やす"}
+]
+};
+
+let cat="A",i=0;
+function load(){
+const x=Q[cat][i];
+num.innerText="問題"+x.n;
+q.innerText=x.q;
+A.innerText="A. "+x.A;
+B.innerText="B. "+x.B;
+C.innerText="C. "+x.C;
+D.innerText="D. "+x.D;
+res.innerText="";exp.innerText="";
+}
+function ans(v){
+const x=Q[cat][i];
+res.innerText=(v===x.c)?"⭕ 正解":"❌ 不正解（正解："+x.c+"）";
+exp.innerText=x.e;
+}
+function nextQ(){i=(i+1)%Q[cat].length;load();}
+function changeCat(){cat=document.getElementById("cat").value;i=0;load();}
+load();
+</script>
+</body>
+</html>
