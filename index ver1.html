@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBT 4択クイズ・トレーニングアプリ</title>
+    <title>CBT 110問完全版 - 4択トレーニングアプリ</title>
     <style>
         :root {
             --primary-color: #34495e;
@@ -24,7 +24,7 @@
         .quiz-container {
             background: white;
             width: 95%;
-            max-width: 600px;
+            max-width: 700px;
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -34,16 +34,19 @@
             font-size: 0.9em;
             color: #7f8c8d;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
         }
         .question-text {
             font-size: 1.25em;
             font-weight: bold;
             margin-bottom: 25px;
-            min-height: 3.5em;
+            min-height: 4em;
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1.4;
+            line-height: 1.5;
+            text-align: left;
         }
         .options-list {
             display: flex;
@@ -58,7 +61,7 @@
             border-radius: 12px;
             cursor: pointer;
             text-align: left;
-            font-size: 1em;
+            font-size: 0.95em;
             transition: all 0.2s;
             display: flex;
             align-items: flex-start;
@@ -69,8 +72,9 @@
         }
         .option-prefix {
             font-weight: bold;
-            margin-right: 10px;
+            margin-right: 15px;
             color: var(--accent-color);
+            min-width: 20px;
         }
         .option-btn.correct {
             background-color: #d4edda;
@@ -83,8 +87,9 @@
             color: #721c24;
         }
         .nav-controls {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 10px;
             margin-top: 20px;
             border-top: 1px solid #eee;
             padding-top: 20px;
@@ -93,7 +98,7 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.9em;
@@ -106,38 +111,43 @@
             background: #f39c12;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
         }
         #feedback {
             margin-top: 15px;
             font-weight: bold;
-            min-height: 1.5em;
+            min-height: 2em;
+            font-size: 1.1em;
+        }
+        #score-stats {
+            font-weight: bold;
+            color: var(--accent-color);
         }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
-    <div class="progress-bar">問題 <span id="current-idx">1</span> / 110</div>
+    <div class="progress-bar">
+        <span>問題 <span id="current-idx">1</span> / 110</span>
+        <span id="score-stats">正解数: 0</span>
+    </div>
     <div class="question-text" id="question">読み込み中...</div>
     
-    <div class="options-list" id="options">
-        </div>
+    <div class="options-list" id="options"></div>
 
     <div id="feedback"></div>
 
     <div class="nav-controls">
         <button class="control-btn" id="prev-btn" onclick="prevQuestion()">前へ</button>
-        <button class="retry-btn" onclick="resetCurrent()">この問題をやり直す</button>
+        <button class="retry-btn" onclick="resetCurrent()">やり直し</button>
         <button class="control-btn" id="next-btn" onclick="nextQuestion()">次へ</button>
     </div>
 </div>
 
 <script>
-    // データの全量は非常に多いため、ここでは主要な一部を配列にしています。
-    // (実際の運用時は、前回の全データをここに貼り付けてください)
     const quizData = [
         {"question": "認知行動療法（CBT）の基本的な考え方として、最も適切なものはどれか。", "answer": "認知・感情・行動・身体反応が相互に影響し合っていると考え、介入を行う。"},
         {"question": "うつ病の「行動活性化」において、活動を計画する際の重要な視点はどれか。", "answer": "「快（楽しさ）」や「達成感」が得られる活動を、スモールステップで取り入れる。"},
@@ -148,16 +158,113 @@
         {"question": "行動分析の「ABC分析」において、B（行動）を増やす「負の強化」の説明はどれか。", "answer": "行動の結果、自分にとって嫌なもの（不快刺激）がなくなること。"},
         {"question": "発達障害のある方への就労支援CBTで、「環境調整」が並行して行われる主な理由はどれか。", "answer": "障害特性と職場環境のミスマッチが維持要因となっている場合、環境側を整える方が適応が早いため。"},
         {"question": "困難事例において、介入が進まない時にセラピストが最初に見直すべき点はどれか。", "answer": "治療同盟（関係性）や、現在のフォーミュレーションに抜け落ちている維持要因はないか。"},
-        {"question": "CBTにおいて「協働的実証主義」を体現する姿勢として、最も適切なものはどれか。", "answer": "「この考えは正しいか？」を、科学者が実験を行うように、クライアントと共にデータや事実に基づいて検証する。"}
-        // ... (ここに110問目までを追加可能)
+        {"question": "CBTにおいて「協働的実証主義」を体現する姿勢として、最も適切なものはどれか。", "answer": "「この考えは正しいか？」を、科学者が実験を行うように、クライアントと共にデータや事実に基づいて検証する。"},
+        {"question": "CBTの終結期において、再発予防のために作成する「メンテナンス・プラン」に含まれるべき要素として最も適切なものはどれか。", "answer": "調子が悪くなり始めた時の「早期警戒サイン」と具体的な対処法"},
+        {"question": "うつ病の行動活性化（BA）において、活動の「価値」を特定することの意義として正しいものはどれか。", "answer": "単なる忙しさではなく、本人にとって意味のある強化（報酬）を得やすくするため"},
+        {"question": "全般不安症（GAD）のCBTにおいて、「心配に対する心配（メタ心配）」を扱う目的はどれか。", "answer": "心配を制御不能で有害なものと捉える信念を修正し、柔軟性を高めるため"},
+        {"question": "強迫症（OCD）に対する曝露反応妨害法（ERP）で、「反応妨害」が不可欠な理由は何か。", "answer": "強迫行為（儀式）をしなくても、恐れている事態が起きない、あるいは不安が自然に下がることを体験するため"},
+        {"question": "パニック症のアセスメントで用いられる「身体感覚への破局的解釈」の例として、最も典型的なものはどれか。", "answer": "この動悸は心臓発作の前触れであり、私はこのまま死んでしまう"},
+        {"question": "行動分析における「消去バースト」とはどのような現象か。", "answer": "強化（報酬）を停止した直後に、その行動が一時的に頻発したり激しくなったりすること"},
+        {"question": "アセスメントの段階で、クライアントの「強み（リソース）」を把握することが重要な理由は何か。", "answer": "治療の困難に直面した際、本人が活用できる既存のスキルやサポート網を介入に組み込めるから"},
+        {"question": "ソクラテス式質問（誘導的発見）を用いる際、避けるべき態度はどれか。", "answer": "セラピストが用意した「正解」へ、誘導尋問のように追い詰める"},
+        {"question": "ACTの「現在とのつながり（マインドフルネス）」において推奨される練習の目的はどれか。", "answer": "評価や判断を加えずに、今この瞬間の体験に意識的に留まる能力を養うこと"},
+        {"question": "発達障害（ASD/ADHD）のあるクライアントへのCBTにおいて、認知再構成法を導入する際の注意点はどれか。", "answer": "抽象的な概念の操作が苦手な場合があるため、視覚的ツールや具体的な事実を重視する"},
+        {"question": "CBTにおける「コラム法（思考記録表）」の最終的なゴールは何か。", "answer": "記録を書かなくても、頭の中で適応的な考えを見つけ、行動を変えられるようになること"},
+        {"question": "社交不安症のクライアントが行う「安全行動」が及ぼす対人的な悪影響はどれか。", "answer": "相手から「冷淡」「関心がなさそう」といった誤解を招き、実際に拒絶される可能性を高める"},
+        {"question": "依存行動に対する「代替行動」を計画する際のポイントとして、適切なものはどれか。", "answer": "依存行動と同時に行うことが物理的に不可能な行動（例：飲酒の代わりに水泳をする）を選ぶ"},
+        {"question": "困難事例において「セラピストのスキーマ」が影響している場合、どのような現象が起きやすいか。", "answer": "「患者は良くなるべきだ」というセラピストの信念が、改善しないクライアントへの焦燥感や非難につながる"},
+        {"question": "就労支援におけるCBTアセスメントの項目「維持要因」に該当するものはどれか。", "answer": "ミスをした際に「怒られる」と思い込み、報告を遅らせることでさらに事態が悪化するパターン"},
+        {"question": "パニック症の「曝露」において、あえてコーヒーを飲んだりして動悸を起こす手法を何と呼ぶか。", "answer": "身体感覚曝露（内部感覚曝露）"},
+        {"question": "ウェルビーイングを重視したCBTにおいて、ネガティブな感情をどのように扱うか。", "answer": "価値ある人生を歩む過程で生じる「自然な反応」として受け入れ、共存を図る"},
+        {"question": "再発予防における「アブスティナンス・バイオレーション効果（AVE）」とは何か。", "answer": "一度のスリップをきっかけに「もうダメだ」と自己否定し、本格的な再発に繋がること"},
+        {"question": "CBTのセッションにおける「構造化」に含まれないものはどれか。", "answer": "セラピストが一方的に講義を行うだけの時間"},
+        {"question": "不眠症のCBT（CBT-I）における「刺激制御法」の指導として適切なものはどれか。", "answer": "眠くなってから寝床に入り、眠れない時は一旦寝床を出る"},
+        {"question": "ACTの「自己としての文脈（観察する自己）」を説明するメタファーはどれか。", "answer": "空と、そこを流れていく雲や天気"},
+        {"question": "行動分析における「三項随伴性」の構成要素の正しい順序はどれか。", "answer": "先行条件（A）→ 行動（B）→ 結果（C）"},
+        {"question": "社交不安症のビデオフィードバックにおいて、本人の予測と実際の映像を比較する目的は何か。", "answer": "「自分が思っているほど不自然には見えていない」という事実を学習するため"},
+        {"question": "依存症支援の「動機づけ面接（MI）」において、チェンジトークを引き出す目的は何か。", "answer": "本人が自分の口で「変わりたい理由」を語ることで、コミットメントを高めるため"},
+        {"question": "CBTにおける「ホームワーク（宿題）」が重要視される最大の理由は何か。", "answer": "日常生活での実践が変化を定着させるから"},
+        {"question": "マインドフルネス認知療法（MBCT）が、うつ病の再発予防に有効とされるメカニズムはどれか。", "answer": "「反芻（ぐるぐる思考）」に気づき、離れられるようにするから"},
+        {"question": "「行動実験」を行う際に、予測をあらかじめ数値化しておく目的は何か。", "answer": "実験結果と事前の予測を客観的に比較し、認知の歪みをデータで確認するため"},
+        {"question": "就労支援における「SST」のCBT的側面として正しいものはどれか。", "answer": "不合理な信念を扱いながら、具体的な行動の選択肢を増やすこと"},
+        {"question": "パニック症の治療において、「安心材料（お守り等）」を徐々に減らしていくべきなのはなぜか。", "answer": "それらがないと安全を保てないという信念を維持し続け、真の自信がつかないから"},
+        {"question": "CBTにおける「中核信念（コア・スキーマ）」とは、どのようなものか。", "answer": "自分や世界に対する、根深く包括的な「絶対的な決めつけ（例：私は無能だ）」"},
+        {"question": "DBT（弁証法的行動療法）の核心的なバランス（弁証法）とは何か。", "answer": "クライアントの現在のありのままへの「受容」と、変化への「プッシュ」"},
+        {"question": "CBTにおいて、クライアントが「考えが整理できない」と言う場合に有効な対応はどれか。", "answer": "思考を紙に書き出し、可視化（アウトエキスターナライゼーション）して整理する"},
+        {"question": "強迫症の家族が、本人の確認行為を手伝ってしまうことを解消すべき理由は何か。", "answer": "家族が手伝うことが「安全行動」となり、本人の不安への耐性や再学習を妨げるから"},
+        {"question": "アサーションにおいて、「アイ（I）メッセージ」が推奨される理由は何か。", "answer": "相手を責めるニュアンスを減らし、自分の気持ちや要望を事実として伝えやすくなるから"},
+        {"question": "依存行動の引き金となる「内部トリガー」に該当するものはどれか。", "answer": "仕事でミスをした時の「自分はダメだ」という強い自己否定感や不安"},
+        {"question": "摂食障害のCBT-Eにおいて、最も優先される初期の介入はどれか。", "answer": "規則正しい定期的な食事（レギュラー・イーティング）の確立"},
+        {"question": "ACTの「コミットした行動」とは、どのような行動を指すか。", "answer": "自分が選んだ「価値」に沿って、苦痛があっても継続的に行う具体的なステップ"},
+        {"question": "行動分析の「プロンプト」と「フェイディング」の説明として正しいものはどれか。", "answer": "最初は手助け（プロンプト）を出し、自立に合わせて徐々に減らす（フェイディング）こと"},
+        {"question": "不安階層表を作成する際、最も低い（不安度10〜20）項目に設定すべきものはどれか。", "answer": "少し緊張はするが、今の自分でも「これならできそう」と思える軽度のチャレンジ"},
+        {"question": "CBTの終結に際して、将来の不快な気分への備えを伝えることを何と呼ぶか。", "answer": "心理教育的予測（あるいは「普通のこと」としての正常化）"},
+        {"question": "全般不安症における「心配の時間（Worry Time）」という技法の狙いは何か。", "answer": "心配を「後回し」にすることで、心配が制御可能なものであるという感覚を取り戻すため"},
+        {"question": "身体醜形症（BDD）の人が、鏡を何度も確認することを止めるべき理由はどれか。", "answer": "確認を繰り返すほど欠点への「選択的注目」が強まり、歪みがひどくなるから"},
+        {"question": "CBTにおいて「アジェンダ」を立てる際に、セラピストが心がけるべきことは何か。", "answer": "クライアントと相談して、今日扱う項目の優先順位を「協働的」に決定する"},
+        {"question": "不眠症のCBTにおける「睡眠制限法」の目的として正しいものはどれか。", "answer": "寝床にいる時間と実際の睡眠時間を一致させ、睡眠の密度を高めて熟睡感を促すため"},
+        {"question": "うつ病の再発予防において、気分の波を「単なる揺らぎ」と捉えるのはどの概念か。", "answer": "再ラベリング（意味の付け替え）"},
+        {"question": "SSTの練習過程において、最初に行うべきことは何か。", "answer": "モデリング（お手本を見る）やロールプレイを通じた練習"},
+        {"question": "「クライアントが自分のセラピストになる」という言葉が意味するのはどれか。", "answer": "学んだスキルを日常生活で適用し、問題を自己解決できるようになること"},
+        {"question": "強迫症のチェック行動が激しい場合、段階的曝露として最初に行うのはどれか。", "answer": "確認の回数を1回減らす、または確認するまでの時間を数分遅らせる"},
+        {"question": "ACTにおいて、感情をコントロールしようとすること自体が問題だという概念はどれか。", "answer": "創造的絶望"},
+        {"question": "治療同盟が崩れかけているサインとして、注意深く観察すべき行動はどれか。", "answer": "宿題を何度もやってこない、あるいはセッションのキャンセルが続く"},
+        {"question": "認知再構成法において、「根拠」と「反証」を検討した後に行うステップはどれか。", "answer": "両方を踏まえた、よりバランスの取れた「適応的思考」を構成する"},
+        {"question": "パニック症で、袋の中で呼吸させる手法が現在は推奨されない主な理由は何か。", "answer": "低酸素血症の危険があるだけでなく、新たな安全行動を強化してしまうから"},
+        {"question": "スキーマ療法において、他人が自分を傷つけようとしていると信じるスキーマはどれか。", "answer": "不信・虐待スキーマ"},
+        {"question": "行動分析において、嫌なものを提示することで行動の頻度を減らす手続きはどれか。", "answer": "正の罰（出現罰）"},
+        {"question": "強迫症のCBTで、別の儀式（中和行動）をしてもいいか問われた時の適切な対応はどれか。", "answer": "それは不安への馴化を妨げる新たな安全行動になるため、控えるよう説明する"},
+        {"question": "行動活性化で「活動記録」をつけることでクライアントが得られる気づきはどれか。", "answer": "気分の波は、実は自分の「行動」と密接に連動しているというパターン"},
+        {"question": "ACTで、思考に「〜と考えた」というラベルを付ける練習の名称はどれか。", "answer": "脱フュージョン"},
+        {"question": "依存症のCBTにおいて、ハイリスク状況での対処スキルの最も効果的な練習法はどれか。", "answer": "具体的な場面を想定した「ロールプレイ」を行い、繰り返し身体で覚える"},
+        {"question": "社交不安症で、あえてボタンを掛け違えて街を歩くなどの練習を何と呼ぶか。", "answer": "恥じかき曝露（恥さらしエクスポージャー）"},
+        {"question": "セッション中の「セラピストの自己開示」について適切な説明はどれか。", "answer": "治療的意図がある場合に限り、限定的に行う"},
+        {"question": "DBTで、感情が激した時に氷を握るなどの行動を勧める目的は何か。", "answer": "強い身体刺激によって衝動から注意を逸らし、生理的な興奮を鎮めるため"},
+        {"question": "アセスメントの「5領域」の図で、各要素を繋ぐ矢印が双方向である理由はどれか。", "answer": "各要素が互いに影響を与え合い、維持要因の悪循環を形成していることを示すため"},
+        {"question": "強迫症の「不適切な責任感」を弱めるための「パイチャート法」の説明として正しいものはどれか。", "answer": "起こりうる惨事の原因をすべて挙げ、自分の責任の割合を相対化する"},
+        {"question": "パニック症で、恥が実際に起きたらどうなるかを突き詰める対話技法はどれか。", "answer": "下方矢印法（下向き矢印法）"},
+        {"question": "不眠症のCBTにおいて、昼間の居眠りを制限する理由として最も適切なものはどれか。", "answer": "夜間に必要な「睡眠圧（眠るためのエネルギー）」を溜めておくため"},
+        {"question": "行動分析において、行動の直後に強化を与えるまでの時間で適切なのはどれか。", "answer": "行動の直後（できれば数秒以内）に行うのが最も学習効果が高い"},
+        {"question": "就労支援で、相談の「メリット・デメリット」を整理する技法の名称はどれか。", "answer": "意思決定バランス"},
+        {"question": "ACTの「アクセプタンス」を誤解している例として、適切なものはどれか。", "answer": "嫌な体験を「我慢」して耐え忍び、将来もこのままだと諦める"},
+        {"question": "過食性障害のCBTにおいて、過食の引き金に気づくために何を書くか。", "answer": "状況・考え・気分を記したセルフモニタリング・シート"},
+        {"question": "GADに対し、今できる解決策があるか問いかけるステップを含む技法はどれか。", "answer": "問題解決訓練（PST）"},
+        {"question": "発達障害支援で、望ましい行動を絵や文字で具体的に示すツールを何と呼ぶか。", "answer": "視覚的構造化（視覚的支援）"},
+        {"question": "CBTのフォーミュレーションにおいて、症状が出現したきっかけを何と呼ぶか。", "answer": "誘発要因（触発要因）"},
+        {"question": "行動の発生頻度が「増えたか」「減ったか」で決まる概念はどれか。", "answer": "強化と弱化（罰）の定義"},
+        {"question": "マインドフルネスで、湧いてきた思考に名前を付ける技法を何と呼ぶか。", "answer": "ラベリング"},
+        {"question": "CBTにおける「逆転移」の扱いとして最も適切なものはどれか。", "answer": "セラピスト自身の反応も一つのデータとして捉え、治療関係の改善に活かす"},
+        {"question": "依存症の再発を防ぐ「HALT」に含まれない要因はどれか。", "answer": "希望 (Hopeful)"},
+        {"question": "パニック症で、あえて心拍数を上げる運動を行う際、事前に説明すべきことはどれか。", "answer": "「この動悸は運動による正常な反応であり、パニック発作ではないことを体験しましょう」"},
+        {"question": "CBTにおいて「宿題」の実施率が低い場合、セラピストがまず検討すべきことはどれか。", "answer": "宿題の内容が難しすぎないか、意義が十分に納得されているかを見直す"},
+        {"question": "DBTの対人関係スキル「DEAR MAN」の『D』は何を指すか。", "answer": "Describe (描写する)"},
+        {"question": "強迫症のチェック行動で、不安が残っていても1回で終えるルールに変える目的は何か。", "answer": "「不安がなくなるまで」という不適切な停止規則を修正するため"},
+        {"question": "クライアントの過去の成功体験やサポート網を把握することを何と呼ぶか。", "answer": "リソース・アセスメント"},
+        {"question": "一つの失敗を見て「自分は何をやってもダメだ」と思う認知の歪みはどれか。", "answer": "過度の一般化"},
+        {"question": "依存症で、渇望を「波のようにやり過ごす」技法はどれか。", "answer": "アージ・サーフィン"},
+        {"question": "「やる気は動いた後に付いてくる」と説明し、1分だけ試すよう促すアプローチはどれか。", "answer": "行動活性化の介入（スモールステップ）"},
+        {"question": "注意を意図的に「外の世界」に向ける訓練を何と呼ぶか。", "answer": "アテンション・トレーニング（注意訓練）"},
+        {"question": "不眠症のCBTにおいて、日中の強い眠気への対応で適切なのはどれか。", "answer": "15〜20分程度の短い仮眠を午後3時より前にとる"},
+        {"question": "発達障害の人に提供する、セッション内容をまとめた資料を何と呼ぶか。", "answer": "セラピー・ノート（セッション・サマリー）"},
+        {"question": "「どの場面で、どのスキルを使って、どう変わったか」を言語化してもらう目的は何か。", "answer": "自己効力感を高め、再発予防につなげるため"},
+        {"question": "「考えただけで不幸が現実になる」と思い込む現象を何と呼ぶか。", "answer": "思考・行為融合 (TAF)"},
+        {"question": "目標とする形に徐々に近づけていく技法を何と呼ぶか。", "answer": "シェイピング（逐次近似法）"},
+        {"question": "価値のために一歩を踏み出す能動的姿勢を象徴する言葉はどれか。", "answer": "Willingness (ウィリングネス)"},
+        {"question": "「酒はやめたいけど、ストレス発散がなくなるのは困る」という状態はどれか。", "answer": "両価性 (アンビバレンス)"},
+        {"question": "「返信がないのは嫌われたからだ」に対し「忙しいのかも」と考えるのはどれか。", "answer": "オルタナティブ（代替的）な解釈の生成"},
+        {"question": "破局的解釈を検証するために、実際に起きたらどうなるかを「実演」する手法はどれか。", "answer": "恐怖の予言の検証（実演実験）"},
+        {"question": "呼吸瞑想中に雑念が湧いてきた時の正しい対応はどれか。", "answer": "雑念にそっと気づき、評価せずにまた意識を呼吸に戻す"},
+        {"question": "「あなたの考えは間違っているので直しなさい」という態度の問題点はどれか。", "answer": "協働的実証主義を損なう"},
+        {"question": "「べき」を「〜できれば、より望ましい」に置き換える目的は何か。", "answer": "認知的柔軟性を高め、自己批判を減らすため"},
+        {"question": "曝露を続けても不安が下がらない「馴化の遅延」の主な原因はどれか。", "answer": "頭の中でこっそり儀式（安全行動）を行っている"},
+        {"question": "職場の「過剰な配慮」が弊害となる理由はどれか。", "answer": "成功体験の機会を奪い、学習性無力感を強化するから"},
+        {"question": "「進み続ける方向性」を指し、完了することがない概念はどれか。", "answer": "価値 (Values)"}
     ];
 
     let currentQuestionIndex = 0;
+    let score = 0;
+    let answeredQuestions = new Set();
     let shuffledOptions = [];
-
-    function initQuiz() {
-        showQuestion();
-    }
 
     function showQuestion() {
         const data = quizData[currentQuestionIndex];
@@ -165,9 +272,7 @@
         document.getElementById('question').innerText = data.question;
         document.getElementById('feedback').innerText = '';
         
-        // 誤答の生成（他の問題から取得）
         shuffledOptions = generateOptions(data.answer);
-        
         renderOptions();
         updateNavButtons();
     }
@@ -175,7 +280,6 @@
     function generateOptions(correctAnswer) {
         let options = [correctAnswer];
         let others = quizData.map(d => d.answer).filter(a => a !== correctAnswer);
-        // ランダムに3つ選ぶ
         others.sort(() => Math.random() - 0.5);
         options.push(...others.slice(0, 3));
         return options.sort(() => Math.random() - 0.5);
@@ -200,18 +304,21 @@
         const allBtns = document.querySelectorAll('.option-btn');
         const feedback = document.getElementById('feedback');
 
-        // 全ボタンを無効化
         allBtns.forEach(b => b.disabled = true);
 
         if (choice === correct) {
             btn.classList.add('correct');
             feedback.innerText = '⭕ 正解です！';
             feedback.style.color = 'var(--correct-color)';
+            if (!answeredQuestions.has(currentQuestionIndex)) {
+                score++;
+                answeredQuestions.add(currentQuestionIndex);
+                document.getElementById('score-stats').innerText = `正解数: ${score}`;
+            }
         } else {
             btn.classList.add('wrong');
-            feedback.innerText = `❌ 不正解（正解は「${correct}」です）`;
+            feedback.innerText = `❌ 不正解（正解：${correct}）`;
             feedback.style.color = 'var(--wrong-color)';
-            // 正解のボタンをハイライト
             allBtns.forEach(b => {
                 if (b.innerText.includes(correct)) b.classList.add('correct');
             });
@@ -219,7 +326,7 @@
     }
 
     function resetCurrent() {
-        showQuestion(); // 同じインデックスで再描画
+        showQuestion();
     }
 
     function nextQuestion() {
@@ -241,7 +348,7 @@
         document.getElementById('next-btn').disabled = (currentQuestionIndex === quizData.length - 1);
     }
 
-    initQuiz();
+    showQuestion();
 </script>
 
 </body>
