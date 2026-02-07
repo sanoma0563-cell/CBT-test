@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不安克服ワークブック（完全版）</title>
+    <style>
+        :root {
+            --primary: #4a6cf7;
+            --secondary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #e11d48;
+            --bg: #f0f2f5;
+        }
+
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; color: #333; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        
+        .card { background: white; max-width: 800px; margin: 20px auto; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary); }
+
+        .btn { border: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1rem; display: inline-block; text-decoration: none; text-align: center; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* ボードエリア */
+        .main-container { height: 60vh; position: relative; background: #fff; border: 1px solid #ddd; overflow: hidden; }
+        .horizontal-scale { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .scale-line { position: absolute; width: 100%; border-top: 1px solid #e2e8f0; display: flex; align-items: center; }
+        .scale-line span { background: #f1f5f9; color: #64748b; font-size: 11px; padding: 2px 8px; font-weight: bold; }
+        #board { position: absolute; width: 100%; height: 100%; overflow-y: auto; }
+
+        /* 付箋 */
+        .sticky-note { width: 140px; min-height: 65px; padding: 12px; background: #fef08a; border-radius: 4px; box-shadow: 2px 4px 10px rgba(0,0,0,0.15); position: absolute; cursor: grab; z-index: 10; font-size: 0.85rem; border-left: 5px solid #eab308; }
+        .text-content { outline: none; min-height: 40px; }
+        .sud-badge { display: block; margin-top: 6px; font-size: 0.75rem; font-weight: bold; color: #b45309; border-top: 1px solid #fde047; padding-top: 3px; }
+
+        /* 画像エリアのスタイル */
+        .edu-image-container { text-align: center; margin: 20px 0; background: #fff; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; }
+        .edu-image-container img { max-width: 100%; height: auto; border-radius: 4px; }
+        .image-caption { font-size: 0.8rem; color: #666; margin-top: 5px; }
+
+        /* 心理教育 */
+        .edu-section { margin-bottom: 20px; padding: 15px; border-radius: 10px; background: #f0f9ff; border-left: 5px solid var(--primary); }
+        .edu-title { font-weight: bold; margin-bottom: 10px; color: #0369a1; }
+        .edu-list { padding-left: 20px; margin: 0; }
+
+        /* 記録シート用テーブル */
+        .exp-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .exp-table th, .exp-table td { border: 1px solid #cbd5e1; padding: 10px; }
+        .exp-table th { background: #f1f5f9; text-align: left; font-size: 0.9rem; }
+        .sud-grid { display: grid; grid-template-columns: repeat(9, 1fr); border: 1px solid #cbd5e1; margin: 10px 0; }
+        .sud-grid div { border: 0.5px solid #cbd5e1; text-align: center; }
+        .sud-grid input { width: 100%; border: none; text-align: center; padding: 10px 0; font-size: 1rem; }
+        .label-bg { background: #334155; color: white; font-size: 0.7rem; padding: 5px 0; }
+
+        textarea, input[type="text"] { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+
+        @media print {
+            .btn, header { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #000; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>不安克服ワークブック</h1>
+</header>
+
+<div id="screen-hierarchy" class="screen active">
+    <div class="card" style="text-align: center; padding: 10px; font-size: 0.9rem;">
+        付箋を移動させて、不安が低い順（下から上へ）に並べてください。
+    </div>
+    
+    <div class="main-container">
+        <div class="horizontal-scale" id="scaleGrid"></div>
+        <div id="board"></div>
+    </div>
+
+    <div style="text-align:center; padding: 20px;">
+        <button class="btn btn-success" onclick="confirmHierarchy()">階層表を確定する</button>
+    </div>
+</div>
+
+<div id="screen-result" class="screen card">
+    <h2>あなたの不安階層表</h2>
+    <table class="exp-table">
+        <thead>
+            <tr style="background:#f1f5f9;"><th style="width:80px; text-align:center;">SUD</th><th>状況・活動のステップ</th></tr>
+        </thead>
+        <tbody id="hierarchyTableBody"></tbody>
+    </table>
+    <div style="text-align:center; margin-top:20px;">
+        <button class="btn btn-primary" onclick="showPsychoEdu()">心理教育①へ進む</button>
+    </div>
+</div>
+
+<div id="screen-psycho" class="screen card">
+    <h2 style="text-align: center;">心理教育①：不安の反応を知る</h2>
+
+    <div class="edu-image-container">
+        <img src="不安・恐怖の三要素の図.jpg" alt="不安・恐怖の三要素の図">
+        <div class="image-caption">【図1】不安・恐怖を構成する3つの要素</div>
+    </div>
+
+    <div class="edu-section">
+        <div class="edu-title">1. 心理的・感情的な主観的反応</div>
+        <ul class="edu-list">
+            <li><b>過剰な熟考:</b> メッセージを何度も見直し、極端に気にする。</li>
+            <li><b>拒絶への恐怖:</b> 無視や批判への強い恐怖感。</li>
+            <li><b>ネガティブ螺旋:</b> 「嫌われたかも」という思い込み。</li>
+        </ul>
+    </div>
+
+    <div class="edu-section" style="border-left-color: var(--danger); background:#fff1f2;">
+        <div class="edu-title" style="color:var(--danger)">2. 身体的な自律神経反応</div>
+        <ul class="edu-list">
+            <li>動悸、手の震え、息苦しさ、胃の不快感・吐き気など。</li>
+        </ul>
+    </div>
+
+    <div class="edu-section" style="border-left-color: var(--success); background:#ecfdf5;">
+        <div class="edu-title" style="color:var(--success)">3. 回避行動</div>
+        <ul class="edu-list">
+            <li>避ける、よける、ひきこもる、後回しにする。</li>
+        </ul>
+    </div>
+
+    <div class="edu-image-container">
+        <img src="不安・恐怖の継時変化の図0.jpg" alt="不安・恐怖の継時変化の図0">
+        <div class="image-caption">【図2】時間の経過とともに不安が下がる仕組み</div>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <button class="btn btn-warning" onclick="showExposureSheet()">ワークシート作成へ進む</button>
+    </div>
+</div>
+
+<div id="screen-exposure" class="screen card">
+    <h2 style="text-align: center;">エクスポージャーの記録</h2>
+    <div style="text-align: right; margin-bottom: 10px;">
+        日付：<input type="date" style="width:150px;">
+    </div>
+
+    <div class="edu-section" style="background:#f8fafc; border-left-color:#334155;">
+        <div style="background:#334155; color:white; padding:5px 10px; display:inline-block; border-radius:4px;">チャレンジ前</div>
+        <table class="exp-table">
+            <tr><th>取り組むこと</th><td><input type="text" placeholder="例：友人にスタンプを送る"></td></tr>
+            <tr><th>予感</th><td><input type="text" placeholder="どのような予感がしますか？"></td></tr>
+        </table>
+    </div>
+
+    <div style="margin:20px 0;">
+        <p style="font-size:0.9rem; font-weight:bold;">チャレンジ中の不安の推移（SUD）</p>
+        <div class="sud-grid">
+            <div class="label-bg">1</div><div class="label-bg">2</div><div class="label-bg">3</div><div class="label-bg">4</div><div class="label-bg">5</div><div class="label-bg">6</div><div class="label-bg">7</div><div class="label-bg">8</div><div class="label-bg">9</div>
+            <div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div>
+            <div class="label-bg">10</div><div class="label-bg">11</div><div class="label-bg">12</div><div class="label-bg">13</div><div class="label-bg">14</div><div class="label-bg">15</div><div class="label-bg">16</div><div class="label-bg">17</div><div class="label-bg">18</div>
+            <div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div><div><input type="text"></div>
+        </div>
+    </div>
+
+    <div class="edu-section" style="background:#f8fafc; border-left-color:#334155;">
+        <div style="background:#334155; color:white; padding:5px 10px; display:inline-block; border-radius:4px;">チャレンジ後</div>
+        <table class="exp-table">
+            <tr><th>結果</th><td><textarea rows="2" placeholder="予感は合っていましたか？"></textarea></td></tr>
+            <tr><th>学び</th><td><textarea rows="2" placeholder="どのようなコツを掴みましたか？"></textarea></td></tr>
+        </table>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <button class="btn btn-primary" onclick="window.print()">記録を保存・印刷する</button>
+        <button class="btn" style="background:#ccc; margin-left:10px;" onclick="location.reload()">最初に戻る</button>
+    </div>
+</div>
+
+<script>
+    const board = document.getElementById('board');
+    const scaleGrid = document.getElementById('scaleGrid');
+
+    // 背景目盛り
+    for (let i = 0; i <= 100; i += 10) {
+        const line = document.createElement('div');
+        line.className = 'scale-line';
+        line.style.top = `${100 - i}%`;
+        line.innerHTML = `<span>${i} SUD</span>`;
+        scaleGrid.appendChild(line);
+    }
+
+    // 14個の付箋初期配置
+    const defaultNotes = ["一番嫌なもの", "一番マシなもの", "両端の真ん中ぐらい", "", "", "", "", "", "", "", "", "", "", ""];
+    defaultNotes.forEach((txt, i) => {
+        const note = document.createElement('div');
+        note.className = 'sticky-note';
+        note.innerHTML = `<div class="text-content">${txt}</div><span class="sud-badge">SUD: --</span>`;
+        note.style.left = `${(i % 4) * 160 + 20}px`;
+        note.style.top = `${(Math.floor(i / 4) * 85) + 20}px`;
+        
+        const content = note.querySelector('.text-content');
+        content.ondblclick = (e) => { e.stopPropagation(); content.contentEditable = "true"; content.focus(); };
+        content.onblur = () => { content.contentEditable = "false"; };
+
+        makeDraggable(note);
+        board.appendChild(note);
+        updateSUD(note);
+    });
+
+    function makeDraggable(el) {
+        let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
+        el.onmousedown = (e) => {
+            if (el.querySelector('.text-content').contentEditable === "true") return;
+            e.preventDefault();
+            p3 = e.clientX; p4 = e.clientY;
+            document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+            document.onmousemove = (e) => {
+                p1 = p3 - e.clientX; p2 = p4 - e.clientY; p3 = e.clientX; p4 = e.clientY;
+                el.style.top = Math.max(0, Math.min(el.offsetTop - p2, board.offsetHeight - el.offsetHeight)) + "px";
+                el.style.left = Math.max(0, Math.min(el.offsetLeft - p1, board.offsetWidth - el.offsetWidth)) + "px";
+                updateSUD(el);
+            };
+        };
+    }
+
+    function updateSUD(el) {
+        const sud = Math.max(0, Math.min(100, Math.round(((board.offsetHeight - el.offsetHeight - el.offsetTop) / (board.offsetHeight - el.offsetHeight)) * 100)));
+        el.dataset.sud = sud;
+        el.querySelector('.sud-badge').innerText = `SUD: ${sud}`;
+    }
+
+    function confirmHierarchy() {
+        const data = Array.from(document.querySelectorAll('.sticky-note'))
+            .map(n => ({ text: n.querySelector('.text-content').innerText.trim(), sud: parseInt(n.dataset.sud) }))
+            .filter(d => d.text !== "").sort((a, b) => b.sud - a.sud);
+        if(!data.length) return alert("付箋に内容を入力してください");
+        document.getElementById('hierarchyTableBody').innerHTML = data.map(d => `<tr><td style="text-align:center; font-weight:bold; color:var(--danger);">${d.sud}</td><td>${d.text}</td></tr>`).join('');
+        switchScreen('screen-result');
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function showPsychoEdu() { switchScreen('screen-psycho'); }
+    function showExposureSheet() { switchScreen('screen-exposure'); }
+</script>
+</body>
+</html>
