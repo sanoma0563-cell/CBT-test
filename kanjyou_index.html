@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポジティブ感情のポートフォリオ</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #4a6cf7; margin-bottom: 10px; }
+        .description { text-align: center; font-size: 14px; color: #666; margin-bottom: 30px; line-height: 1.6; }
+        
+        /* 出力ボタンのスタイル */
+        .print-btn { 
+            background: #28a745; color: white; border: none; padding: 12px 20px; 
+            border-radius: 8px; cursor: pointer; display: block; margin: 0 auto 20px auto; 
+            font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .print-btn:hover { background: #218838; }
+
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid #ddd; }
+        
+        .joy { border-top-color: #ffce54; }
+        .serenity { border-top-color: #4fc1e9; }
+        .hope { border-top-color: #a0d468; }
+        .pride { border-top-color: #ed5565; }
+
+        h2 { margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #eee; border-radius: 8px; resize: none; box-sizing: border-box; }
+        input[type="file"] { font-size: 12px; margin-top: 10px; }
+        
+        .save-btn { background: #4a6cf7; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; }
+        .save-btn:hover { background: #3551d1; }
+
+        .display-area { margin-top: 15px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+        .item { background: #fdfdfd; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 14px; line-height: 1.4; border-left: 3px solid #eee; position: relative; }
+        .img-preview { max-width: 100%; border-radius: 5px; margin-top: 5px; display: block; }
+        .delete-btn { color: #ff5f5f; font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 5px; display: inline-block; }
+
+        /* 印刷・出力用の設定 */
+        @media print {
+            body { background: white; padding: 0; }
+            .description, .input-group, .delete-btn, .print-btn { display: none !important; }
+            .portfolio-grid { display: block; }
+            .card { box-shadow: none; border: 1px solid #eee; margin-bottom: 20px; page-break-inside: avoid; }
+            .container { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ポジティブ感情のポートフォリオ</h1>
+    <p class="description">
+        今のあなたを支えるリソースを集めましょう。<br>
+        「喜び」「安らぎ」「希望」「誇り」を感じる言葉や思い出、写真を登録してください。
+    </p>
+
+    <button class="print-btn" onclick="window.print()">📥 ポートフォリオを出力（PDF/印刷）</button>
+
+    <div class="portfolio-grid" id="printableArea">
+        <div class="card joy">
+            <h2>😊 喜び (Joy)</h2>
+            <div class="input-group">
+                <textarea id="input-joy" placeholder="例：楽しかった旅行、友人と笑った言葉など"></textarea>
+                <input type="file" id="file-joy" accept="image/*">
+                <button class="save-btn" onclick="addEntry('joy')">追加</button>
+            </div>
+            <div id="display-joy" class="display-area"></div>
+        </div>
+
+        <div class="card serenity">
+            <h2>😌 安らぎ (Serenity)</h2>
+            <div class="input-group">
+                <textarea id="input-serenity" placeholder="例：お気に入りのカフェ、温かい言葉"></textarea>
+                <input type="file" id="file-serenity" accept="image/*">
+                <button class="save-btn" onclick="addEntry('serenity')">追加</button>
+            </div>
+            <div id="display-serenity" class="display-area"></div>
+        </div>
+
+        <div class="card hope">
+            <h2>✨ 希望 (Hope)</h2>
+            <div class="input-group">
+                <textarea id="input-hope" placeholder="例：将来の夢、励まされる名言"></textarea>
+                <input type="file" id="file-hope" accept="image/*">
+                <button class="save-btn" onclick="addEntry('hope')">追加</button>
+            </div>
+            <div id="display-hope" class="display-area"></div>
+        </div>
+
+        <div class="card pride">
+            <h2>🏆 誇り (Pride)</h2>
+            <div class="input-group">
+                <textarea id="input-pride" placeholder="例：困難を乗り越えた経験、自分の強み"></textarea>
+                <input type="file" id="file-pride" accept="image/*">
+                <button class="save-btn" onclick="addEntry('pride')">追加</button>
+            </div>
+            <div id="display-pride" class="display-area"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addEntry(category) {
+        const textInput = document.getElementById(`input-${category}`);
+        const fileInput = document.getElementById(`file-${category}`);
+        const displayArea = document.getElementById(`display-${category}`);
+        
+        if (!textInput.value && !fileInput.files[0]) {
+            alert("言葉、または写真を入力してください。");
+            return;
+        }
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item';
+
+        if (textInput.value) {
+            const p = document.createElement('p');
+            p.innerText = textInput.value;
+            p.style.margin = "0";
+            itemDiv.appendChild(p);
+        }
+
+        if (fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-preview';
+                itemDiv.insertBefore(img, itemDiv.firstChild);
+            }
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'delete-btn';
+        delBtn.innerText = '削除';
+        delBtn.onclick = function() { itemDiv.remove(); };
+        itemDiv.appendChild(delBtn);
+
+        displayArea.prepend(itemDiv);
+
+        textInput.value = "";
+        fileInput.value = "";
+    }
+</script>
+
+</body>
+</html>

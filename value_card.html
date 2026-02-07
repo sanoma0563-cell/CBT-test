@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>価値観の明確化ワーク（ACT）</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #e9ecef; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: auto; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        
+        /* ボタン類のデザイン */
+        .btn-group { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        button { border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .how-to-btn { background: #4a6cf7; color: white; }
+        .reset-btn { background: #6c757d; color: white; }
+        .print-btn { background: #28a745; color: white; }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* ホワイトボードエリア */
+        .whiteboard { background: #fff; border: 4px solid #adb5bd; border-radius: 10px; padding: 20px; min-height: 400px; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; margin-bottom: 30px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
+        
+        /* 選択済みエリア */
+        .selection-area { background: #fff; border: 3px solid #4a6cf7; border-radius: 15px; padding: 20px; text-align: center; min-height: 150px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .selection-area h2 { font-size: 18px; color: #4a6cf7; margin-top: 0; }
+        #selected-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
+
+        /* カードのスタイル */
+        .card { width: 100px; height: 130px; background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; user-select: none; }
+        .card:hover { border-color: #4a6cf7; background: #f8f9ff; }
+        .card.selected { background: #e9ecef; border: 1px solid #ced4da; opacity: 0.3; cursor: default; }
+        .card b { display: block; margin-bottom: 4px; color: #2c3e50; font-size: 12px; }
+
+        .card-large { width: 140px; height: 180px; font-size: 13px; border: 2px solid #4a6cf7; background: #fff; opacity: 1 !important; }
+        .card-large b { font-size: 15px; margin-bottom: 8px; }
+
+        /* 説明用ポップアップ（モーダル） */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: #fff; margin: 15% auto; padding: 25px; border-radius: 12px; max-width: 500px; line-height: 1.8; position: relative; }
+        .close-modal { position: absolute; right: 15px; top: 10px; cursor: pointer; font-size: 24px; color: #999; }
+
+        @media print { .btn-group, .whiteboard, .close-modal, .modal { display: none !important; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>価値観の明確化ワーク (ACT)</h1>
+    
+    <div class="btn-group">
+        <button class="how-to-btn" onclick="toggleModal(true)">📖 ワークの進め方を見る</button>
+        <button class="reset-btn" onclick="resetSelection()">🔄 リセット</button>
+        <button class="print-btn" onclick="window.print()">📥 結果をPDF保存</button>
+    </div>
+
+    <div id="howToModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="toggleModal(false)">&times;</span>
+            <h3 style="margin-top:0; color:#4a6cf7;">ワークの進め方</h3>
+            <ol style="padding-left: 20px;">
+                <li>下のリストを眺めながら、自分にとって<b>「大切だ」</b>と思うものをクリックしていきます。</li>
+                <li><b>5枚</b>に達したとき、それが今のあなたの人生の<b>「コンパス（方向性）」</b>となります。</li>
+                <li>もし「こっちの方がより大切だ」と思ったら、<b>上の選んだカードをクリック</b>して戻し、入れ替えてみてください。</li>
+            </ol>
+            <p style="font-size: 13px; color: #666; border-top: 1px solid #eee; pt: 10px;">※目標（達成して終わるもの）ではなく、進みたい方向（価値）を選びましょう。</p>
+        </div>
+    </div>
+
+    <div class="selection-area">
+        <h2>核となる5つの価値観 (<span id="count">0</span>/5)</h2>
+        <div id="selected-container"></div>
+    </div>
+
+    <p style="text-align: center; color: #666; font-size: 13px; margin: 20px 0 10px;">▼ ホワイトボード（全85枚から選択）</p>
+    <div class="whiteboard" id="board"></div>
+</div>
+
+<script>
+    const values = [
+        {t:"受け入れ", d:"ありのままの自分を受け入れてもらう"}, {t:"正確さ", d:"自分の意見や信念が正確であること"}, {t:"達成", d:"重要なことを成し遂げる"},
+        {t:"冒険", d:"新しい体験をすること"}, {t:"魅力", d:"外見的に人をひきつける"}, {t:"権威", d:"他人の上に立ち責任をもつ"},
+        {t:"自律", d:"自己決定すること"}, {t:"美", d:"美しさを観賞する"}, {t:"世話", d:"他人の世話をすること"},
+        {t:"チャレンジ", d:"困難に立ち向かう"}, {t:"変化", d:"変化に富んだ人生"}, {t:"快適さ", d:"居心地の良い人生"},
+        {t:"コミット", d:"有意義な誓いを立てる"}, {t:"同情", d:"他人の悩みを感じいたわる"}, {t:"貢献", d:"世の中に貢献する"},
+        {t:"協力", d:"他人と協力して働く"}, {t:"礼儀", d:"思いやり深く丁寧である"}, {t:"創造性", d:"独創的なアイデアをもつ"},
+        {t:"信頼", d:"信用と信頼がおける"}, {t:"任務", d:"役割と義務を果たす"}, {t:"エコロジー", d:"環境と調和して生きる"},
+        {t:"興奮", d:"刺激的な活動をする"}, {t:"家族", d:"家族を大切にする"}, {t:"公平性", d:"すべての人を平等に扱う"},
+        {t:"謙虚", d:"控えめである"}, {t:"正直さ", d:"嘘をつかず正直である"}, {t:"希望", d:"前向きに保つ"},
+        {t:"ユーモア", d:"微笑ましい部分を見つける"}, {t:"独立", d:"他人に頼らず自由である"}, {t:"勤勉", d:"懸命かつ良く働く"},
+        {t:"安らぎ", d:"個人的な平和を味わう"}, {t:"親密さ", d:"心の奥底を分かち合う"}, {t:"正義", d:"公正な扱いを促す"},
+        {t:"知識", d:"有意義な知識を学ぶ"}, {t:"余暇", d:"心身を休めて気晴らしをする"}, {t:"愛される", d:"親しい人に愛される"},
+        {t:"愛する", d:"他人に愛を与える"}, {t:"熟練", d:"日常の業務に精通する"}, {t:"中庸", d:"過度を控え適切さを求める"},
+        {t:"柔軟性", d:"とらわれず今を見つめる"}, {t:"非順応", d:"決まりごとに立ち向かう"}, {t:"開放性", d:"新しい経験に心を開く"},
+        {t:"秩序", d:"整理された生活を送る"}, {t:"情熱", d:"感情豊かな人生を送る"}, {t:"人気", d:"多くの人に好かれる"},
+        {t:"権力", d:"他人をコントロールする"}, {t:"目的", d:"人生の目的をもつ"}, {t:"合理性", d:"理性に導かれる"},
+        {t:"現実的", d:"現実に即して行動する"}, {t:"責任", d:"重大な決定に関わる"}, {t:"リスク", d:"危ない橋を渡る"},
+        {t:"ロマンス", d:"愛に満ちた生活"}, {t:"安全", d:"危険から身を守る"}, {t:"自己受容", d:"自分を好きでいる"},
+        {t:"自制", d:"自分の行動を管理する"}, {t:"自己認識", d:"自分を深く知る"}, {t:"奉仕", d:"他人の役に立つ"},
+        {t:"セクシュアリティ", d:"性的に満足する"}, {t:"簡素", d:"最小限のもので生きる"}, {t:"孤独", d:"一人でいる時間を楽しむ"},
+        {t:"精神性", d:"精神的に成長する"}, {t:"安定", d:"変化の少ない生活"}, {t:"寛大", d:"他人を許す"},
+        {t:"伝統", d:"過去のしきたりを守る"}, {t:"徳", d:"道徳的に生きる"}, {t:"富", d:"多くのお金をもつ"},
+        {t:"健康", d:"健やかである"}, {t:"友情", d:"親しい友人と過ごす"}, {t:"楽しみ", d:"人生を楽しむ"},
+        {t:"平和", d:"争いのない世の中"}, {t:"自由", d:"束縛されない"}, {t:"叡智", d:"深い理解を得る"},
+        {t:"誠実", d:"誠実に生きる"}, {t:"忍耐", d:"辛抱強く待つ"}, {t:"勇気", d:"恐れずに立ち向かう"},
+        {t:"尊敬", d:"他人を敬う"}, {t:"成長", d:"学び続ける"}, {t:"感謝", d:"ありがたみを感じる"},
+        {t:"調和", d:"周囲と仲良くする"}, {t:"独創性", d:"自分らしくある"}, {t:"効率", d:"無駄なく行う"},
+        {t:"遊び", d:"遊び心を忘れない"}, {t:"所属", d:"集団の一員である"}, {t:"真実", d:"真実を追い求める"},
+        {t:"慈愛", d:"深い慈しみをもつ"}
+    ];
+
+    let selectedList = [];
+    const board = document.getElementById('board');
+    const selectedContainer = document.getElementById('selected-container');
+    const countEl = document.getElementById('count');
+
+    function init() {
+        board.innerHTML = "";
+        values.forEach((v, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${index}`;
+            card.innerHTML = `<b>${v.t}</b><span>${v.d}</span>`;
+            card.onclick = () => selectCard(v, index);
+            board.appendChild(card);
+        });
+    }
+
+    function selectCard(v, index) {
+        if (selectedList.length >= 5) {
+            alert("選択できるのは5枚までです。入れ替える場合は、上のカードをクリックして戻してください。");
+            return;
+        }
+        if (selectedList.some(item => item.index === index)) return;
+        document.getElementById(`card-${index}`).classList.add('selected');
+        selectedList.push({ ...v, index });
+        renderSelected();
+    }
+
+    function renderSelected() {
+        selectedContainer.innerHTML = "";
+        selectedList.forEach((v, i) => {
+            const card = document.createElement('div');
+            card.className = 'card card-large';
+            card.innerHTML = `<b>${v.t}</b><span>${v.d}</span>`;
+            card.onclick = () => removeCard(i);
+            selectedContainer.appendChild(card);
+        });
+        countEl.innerText = selectedList.length;
+    }
+
+    function removeCard(i) {
+        const removed = selectedList.splice(i, 1)[0];
+        document.getElementById(`card-${removed.index}`).classList.remove('selected');
+        renderSelected();
+    }
+
+    function resetSelection() {
+        if(!confirm("選択をすべてクリアしますか？")) return;
+        selectedList = [];
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        renderSelected();
+    }
+
+    function toggleModal(show) {
+        document.getElementById('howToModal').style.display = show ? 'block' : 'none';
+    }
+
+    init();
+</script>
+</body>
+</html>
