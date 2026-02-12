@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTマトリックス・ワークシート</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            border-bottom: 2px solid #e8f0fe;
+            padding-bottom: 10px;
+        }
+        /* 活用ポイントボタン */
+        .info-btn {
+            display: block;
+            margin: 10px auto 20px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .info-btn:hover { background-color: #1a73e8; color: white; }
+
+        /* マトリックス構造 */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            position: relative;
+            margin-top: 40px;
+            background-image: 
+                linear-gradient(to right, #ccc 1px, transparent 1px),
+                linear-gradient(to bottom, #ccc 1px, transparent 1px);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 100% 2px, 2px 100%;
+        }
+
+        .matrix-cell {
+            min-height: 250px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cell-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .cell-title span {
+            background: #1a73e8;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 8px;
+            font-size: 12px;
+        }
+
+        .matrix-input {
+            width: 100%;
+            flex-grow: 1;
+            border: 1px dashed #ddd;
+            padding: 10px;
+            outline: none;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: none;
+            border-radius: 5px;
+        }
+
+        .matrix-input:focus { background: #fdfdfd; border-color: #1a73e8; }
+
+        /* 軸のラベル */
+        .axis-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            color: #777;
+            background: #f0f2f5;
+            padding: 2px 10px;
+        }
+        .label-top { top: -30px; left: 50%; transform: translateX(-50%); }
+        .label-bottom { bottom: -30px; left: 50%; transform: translateX(-50%); }
+        .label-left { left: -80px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+        .label-right { right: -80px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 25px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+
+        .point-item { margin-bottom: 15px; border-left: 4px solid #1a73e8; padding-left: 15px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; }
+            .matrix-input { border: 1px solid #eee; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ACTマトリックス</h1>
+    
+    <button class="info-btn no-print" onclick="openModal()">💡 活用のポイント（書き方）を確認</button>
+
+    <div class="matrix-grid">
+        <div class="axis-label label-top">外部的な行動（見える）</div>
+        <div class="axis-label label-bottom">内部的な体験（見えない）</div>
+        <div class="axis-label label-left">避ける・フック</div>
+        <div class="axis-label label-right">向かう・価値</div>
+
+        <div class="matrix-cell">
+            <div class="cell-title"><span>1</span> 内面にある嫌なもの</div>
+            <div class="matrix-input" contenteditable="true" placeholder="（例）不安、自己嫌悪、『どうせ無理』という思考、過去の嫌な記憶"></div>
+        </div>
+
+        <div class="matrix-cell">
+            <div class="cell-title"><span>2</span> 大切なもの・人・価値観</div>
+            <div class="matrix-input" contenteditable="true" placeholder="（例）家族、誠実さ、成長、クリエイティブであること"></div>
+        </div>
+
+        <div class="matrix-cell">
+            <div class="cell-title"><span>3</span> 嫌なものを避ける行動</div>
+            <div class="matrix-input" contenteditable="true" placeholder="（例）SNSをダラダラ見る、先延ばしにする、お酒を飲みすぎる"></div>
+        </div>
+
+        <div class="matrix-cell">
+            <div class="cell-title"><span>4</span> 価値に向かう行動</div>
+            <div class="matrix-input" contenteditable="true" placeholder="（例）5分だけ勉強する、友人に連絡する、深く呼吸する"></div>
+        </div>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 50px;">
+        <button onclick="window.print()" style="padding: 10px 30px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">PDFとして保存 / 印刷</button>
+    </div>
+</div>
+
+<div id="infoModal" class="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color: #1a73e8; margin-top: 0;">ACTマトリックスの書き方</h2>
+        
+        <div class="point-item">
+            <strong>1. 右下から始める：</strong>
+            自分にとって本当に大切なこと（価値観）や、大事にしたい人は誰ですか？
+        </div>
+        <div class="point-item">
+            <strong>2. 左下を埋める：</strong>
+            大切なことに向かおうとした時、邪魔をしてくる「嫌な思考や感情（フック）」は何ですか？
+        </div>
+        <div class="point-item">
+            <strong>3. 左上を見る：</strong>
+            その嫌な感情から逃げるために、ついやってしまう行動（回避行動）は何ですか？
+        </div>
+        <div class="point-item">
+            <strong>4. 右上を考える：</strong>
+            嫌な感情があっても、なお「価値（右下）」に向かうための小さな一歩は何ですか？
+        </div>
+
+        <p style="font-size: 14px; color: #666; background: #f9f9f9; padding: 10px;">
+            ※ 目的は「左側（避ける）」をゼロにすることではなく、<strong>今自分がどちら側にいるかに気づく</strong>ことです。
+        </p>
+        <button class="info-btn" onclick="closeModal()" style="width: 100%;">閉じる</button>
+    </div>
+</div>
+
+<script>
+    function openModal() { document.getElementById("infoModal").style.display = "block"; }
+    function closeModal() { document.getElementById("infoModal").style.display = "none"; }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カテゴリH：終結と再発予防ワーク</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-height: 550px; display: flex; flex-direction: column; }
+        h1 { font-size: 20px; text-align: center; color: #28a745; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        
+        #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-top: 20px; }
+        .msg { font-size: 17px; margin-bottom: 15px; animation: fadeIn 0.4s ease; }
+        .speaker-label { font-weight: bold; font-size: 13px; margin-bottom: 5px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .label-counselor { background: #e8f5e9; color: #2e7d32; }
+        .label-client { background: #fff3e0; color: #e65100; }
+        .label-narration { background: #f5f5f5; color: #616161; border: 1px solid #ddd; }
+
+        .nav-btns { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        .next-btn { background: #28a745; color: white; flex-grow: 2; }
+        .prev-btn { background: #ced4da; color: #495057; flex-grow: 1; }
+        
+        .options-grid { display: grid; gap: 12px; margin-top: 10px; }
+        .opt-btn { background: #fff; border: 2px solid #28a745; color: #28a745; text-align: left; line-height: 1.4; padding: 15px; }
+        .opt-btn:hover { background: #f0fff4; border-color: #1e7e34; }
+
+        .plan-box { background: #f0f4ff; border: 2px dashed #4a6cf7; padding: 15px; border-radius: 8px; font-size: 14px; margin: 10px 0; }
+        .feedback-bad { color: #d32f2f; background: #fff1f0; padding: 10px; border-radius: 5px; border: 1px solid #ffa39e; margin-top: 10px; font-size: 14px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>再発予防：自立へのロードマップ</h1>
+    
+    <div id="display-area"></div>
+
+    <div class="nav-btns" id="nav-btns">
+        <button id="prev" class="prev-btn" onclick="goPrev()">戻る</button>
+        <button id="next" class="next-btn" onclick="goNext()">読み進める</button>
+    </div>
+</div>
+
+<script>
+    const story = [
+        { id: 0, type: "narration", text: "タカシさんのセッションもいよいよ終盤です。症状は安定し、自分から進んでコーピングを使えるようになりました。" },
+        { id: 1, type: "client", text: "「先生、最近は調子が良くて、SNSもコントロールできています。でも…カウンセリングが終わると思うと、また元に戻ってしまうんじゃないかと不安なんです。」" },
+        { id: 2, type: "choice", q: "終結に向けて、どのような「再発」の捉え方を提示しますか？：", options: [
+            { text: "「もうスキルを身につけたので、二度と再発することはありません。自信を持ってください。」", next: 3 },
+            { text: "「今後、調子の波が来ることは自然なことです。大切なのは『再発させないこと』ではなく『予兆に気づいて対処すること』です。」", next: 5 }
+        ]},
+        // ミスルート
+        { id: 3, type: "client", text: "「二度とない…？ 先生にそう言われると、もし少しでもスマホを見すぎてしまったら、もうおしまいだと思ってしまいそうです…（過度なプレッシャーを感じています）」" },
+        { id: 4, type: "narration", text: "【バッドエンド】「二度と起こらない」という非現実的な保証は、小さなミスを「大失敗（再発）」と捉えさせる「アブスティネンス・バイオレーション効果」を生んでしまいます。", isBad: true },
+        
+        // 正解ルート
+        { id: 5, type: "client", text: "「予兆に気づいて対処する…それならできそうです。でも、自分が危ないっていうサインに、自分で気づけるでしょうか？」" },
+        { id: 6, type: "choice", q: "再発予防プラン（リラプス・プラン）を作成します。何をリスト化しますか？：", options: [
+            { text: "「これまで上手くいったことを全て書き出し、それを毎日欠かさずやるようルール化しましょう。」", next: 7 },
+            { text: "「タカシさんの調子が悪くなる時の『早期警戒サイン（睡眠、思考、気分の変化）』を一緒に書き出してみましょう。」", next: 9 }
+        ]},
+        // ミスルート
+        { id: 7, type: "client", text: "「毎日全部やるのは大変そうです…。できない日があると、それだけで『あぁ再発だ』って思ってしまいそうで怖いです。」" },
+        { id: 8, type: "narration", text: "【バッドエンド】厳格すぎるルールは維持が難しく、挫折感を生みやすいです。変化に柔軟に対応できるプランが必要です。", isBad: true },
+
+        // 正解ルート
+        { id: 9, type: "client", text: "「そうですね。僕の場合、夜更かしが増えたり、『どうせ自分なんて』という考えが頭をよぎり始めたら、危ないサインかもしれません。」" },
+        { id: 10, type: "choice", q: "サインに気づいた時のアクション（対処法）を決めます：", options: [
+            { text: "「サインが出たら、すぐに私に電話して予約を取るようにしてください。」", next: 11 },
+            { text: "「そのサインが出た時に使える、一番効果的だったスキルを3つ選んで、手順書にしておきませんか？」", next: 13 }
+        ]},
+        // ミスルート
+        { id: 11, type: "client", text: "「先生に頼れば安心ですが…いつまでも先生がいないとダメな自分、という感じがして少し寂しいです。」" },
+        { id: 12, type: "narration", text: "【バッドエンド】終結の目的は「クライエントが自分自身のカウンセラーになること」です。依存を強める提案は避けましょう。", isBad: true },
+
+        // 正解ルート
+        { id: 13, type: "client", text: "「いいですね！まずはスマホを置いて散歩に行く、次に価値カードを見直す…という手順を決めておけば、パニックにならずに済みそうです。」" },
+        { id: 14, type: "plan", title: "タカシさんの再発予防プラン", sign: "夜更かし、自責思考、無気力", action: "①スマホを別室に置く ②5分間のマインドフルネス ③散歩" },
+        
+        { id: 15, type: "choice", q: "【最後の問いかけ】終結にあたって：", options: [
+            { text: "「万が一、自分一人で対処できない時は、いつでもまたここを頼っていいんですよ。それは失敗ではなく、賢い選択です。」", next: 16 },
+            { text: "「今日で終わりです。もう二度と会わないことが、私たちの治療の成功ですね。」", next: 18 }
+        ]},
+        // 成功
+        { id: 16, type: "client", text: "「それを聞いて安心しました。守り刀（プラン）を持って、まずは一人で歩いてみます。ありがとうございました！」" },
+        { id: 17, type: "narration", text: "【クリア】あなたはタカシさんの自立を支えつつ、必要な時の「安全網」も示しました。これで全てのカテゴリ（A〜H）の学習が修了しました！", isFinal: true },
+
+        // ミス
+        { id: 18, type: "client", text: "「最後なのに、突き放されたみたいで悲しいです…。もしまた悪くなったら、もう誰にも頼っちゃいけないんだ…（不安が強まりました）」" },
+        { id: 19, type: "narration", text: "【バッドエンド】「いつでも戻ってきていい」という安全感があるからこそ、クライエントは安心して自立に踏み出せます。", isBad: true }
+    ];
+
+    let currentId = 0;
+
+    function render() {
+        const display = document.getElementById('display-area');
+        const btns = document.getElementById('nav-btns');
+        const item = story.find(s => s.id === currentId);
+        
+        display.innerHTML = "";
+        
+        if (item.type === "choice") {
+            btns.style.display = "none";
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-narration">終結に向けた選択</span><br>${item.q}</div>`;
+            const grid = document.createElement('div');
+            grid.className = "options-grid";
+            item.options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "opt-btn";
+                b.innerText = opt.text;
+                b.onclick = () => {
+                    currentId = opt.next;
+                    btns.style.display = "flex";
+                    render();
+                };
+                grid.appendChild(b);
+            });
+            display.appendChild(grid);
+        } else if (item.type === "plan") {
+            display.innerHTML = `
+                <div class="plan-box">
+                    <strong>📋 ${item.title}</strong><br><br>
+                    <strong>早期サイン:</strong> ${item.sign}<br>
+                    <strong>具体的アクション:</strong> ${item.action}
+                </div>
+            `;
+        } else {
+            const labelMap = { counselor: "カウンセラー", client: "タカシさん", narration: "ナレーション" };
+            display.innerHTML = `
+                <div class="msg">
+                    <span class="speaker-label label-${item.type}">${labelMap[item.type]}</span><br>
+                    ${item.text}
+                </div>
+            `;
+            if (item.isBad) {
+                display.innerHTML += `<div class="feedback-bad">やり直し：クライエントの「自立」と「安心」のバランスを考えましょう。</div>`;
+                document.getElementById('next').innerText = "最初からやり直す";
+            } else if (item.isFinal) {
+                document.getElementById('next').innerText = "全課程修了！";
+            } else {
+                document.getElementById('next').innerText = "次に進む";
+            }
+        }
+        document.getElementById('prev').disabled = currentId === 0 || item.isBad;
+    }
+
+    function goNext() {
+        const item = story.find(s => s.id === currentId);
+        if (item.isBad || item.isFinal) {
+            currentId = 0;
+        } else {
+            currentId++;
+        }
+        render();
+    }
+
+    function goPrev() {
+        if (currentId > 0) {
+            currentId--;
+            if (story.find(s => s.id === currentId).type === "choice") currentId--;
+            render();
+        }
+    }
+    render();
+</script>
+</body>
+</html>

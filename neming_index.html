@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外在化のネーミングワーク演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #e3f2fd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #1565c0;
+            background: #e3f2fd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #0d47a1;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #f8fbff;
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #2196f3;
+            background-color: #f0f8ff;
+        }
+        .option-btn.correct-choice {
+            background-color: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+            color: #1b5e20;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #ffcdd2 !important;
+            border-color: #f44336 !important;
+            color: #b71c1c;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #e1f5fe;
+            border: 1px solid #b3e5fc;
+            color: #01579b;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "外在化（外部化）とは？",
+            case: "「私がダメだから怒鳴ってしまう」と自分を責めるクライエントへの、外在化の視点による声かけは？",
+            options: [
+                { text: "A. あなたの性格を直す努力をしましょう", correct: false },
+                { text: "B. あなた自身が悪いのではなく、『怒り虫』があなたを操ろうとしているのかもしれませんね", correct: true },
+                { text: "C. 怒鳴るのは良くないことだと自覚しましょう", correct: false }
+            ],
+            explanation: "「人＝問題」ではなく「問題＝問題」と捉えるのが外在化です。自分自身と問題を切り離す（分離する）ことが治療の第一歩となります。"
+        },
+        {
+            title: "ネーミングのコツ",
+            case: "「過食」という問題をキャラクター化する際、名前をつける上で最も大切なことは？",
+            options: [
+                { text: "A. クライエント自身がしっくりくる（納得感のある）名前を一緒に考える", correct: true },
+                { text: "B. カウンセラーが学術的でかっこいい名前を提案する", correct: false },
+                { text: "C. できるだけ可愛くて、怖くない名前に固定する", correct: false }
+            ],
+            explanation: "名前はクライエントの主観的な感覚に合致している必要があります。本人が「まさにそれ！」と思える名前が、最も外在化の効果を発揮します。"
+        },
+        {
+            title: "キャラクターの属性を探る",
+            case: "「パニック」に『ドキドキモンスター』と名付けた後、どのようなインタビューをすべきか？",
+            options: [
+                { text: "A. モンスターを退治する方法を教える", correct: false },
+                { text: "B. モンスターはどんな時に現れて、どんな顔をして、あなたに何と囁いてきますか？", correct: true },
+                { text: "C. モンスターなんて本当はいないと説得する", correct: false }
+            ],
+            explanation: "キャラクターの性質（手口やタイミング）を詳しく描くことで、問題の「パターン」を客観的に観察しやすくします。"
+        },
+        {
+            title: "関係性の再構築",
+            case: "「不安」を『しんぱい怪獣』と呼ぶことにした子供への、力づけの質問は？",
+            options: [
+                { text: "A. 怪獣が大人しくしている時は、あなたが何をしている時かな？", correct: true },
+                { text: "B. 怪獣に負けてしまうのはなぜだと思う？", correct: false },
+                { text: "C. お父さんも昔、怪獣に勝ったんだよ", correct: false }
+            ],
+            explanation: "問題（怪獣）の影響を受けない「例外の時間」に注目することで、本人の中にある力（リソース）を取り戻していきます。"
+        },
+        {
+            title: "対決から「扱い方」へ",
+            case: "『サボり魔』という名がついたクライエント。カウンセラーとしての共感的な視点は？",
+            options: [
+                { text: "A. サボり魔を追い出すために厳しくなりましょう", correct: false },
+                { text: "B. サボり魔は、もしかしたらあなたを疲れから守ろうとしているのかもしれませんね", correct: true },
+                { text: "C. サボり魔がいる限り、人生はうまくいきません", correct: false }
+            ],
+            explanation: "問題をただ排除する敵とみなすだけでなく、その「肯定的意図（守ろうとしているなど）」を検討することで、より柔軟な対処が可能になります。"
+        },
+        {
+            title: "イメージの活用",
+            case: "キャラクターの姿を絵に描いてもらうワークのメリットは？",
+            options: [
+                { text: "A. 絵の具の使い方が上手くなる", correct: false },
+                { text: "B. 視覚化することで、問題と自分との間に物理的な距離を感じやすくなる", correct: true },
+                { text: "C. 芸術療法として高い効果が証明されているから", correct: false }
+            ],
+            explanation: "紙の上に描くことで、問題は「自分の内側」から「自分の外側（紙の上）」へと完全に移動し、客観的に眺める対象になります。"
+        },
+        {
+            title: "手口の暴露",
+            case: "「うつ」を『くろい霧』と呼ぶ場合、「霧があなたをだまそうとしている手口」を探る質問は？",
+            options: [
+                { text: "A. 霧はあなたに『どうせ何をやっても無駄だ』と嘘をついていませんか？", correct: true },
+                { text: "B. 霧が出るのを防ぐために、もっと外出しましょう", correct: false },
+                { text: "C. 霧はあなたの脳の伝達物質のせいです", correct: false }
+            ],
+            explanation: "問題が本人に信じ込ませようとしている「歪んだ思考」を問題の手口として暴露し、その支配力を弱めます。"
+        },
+        {
+            title: "ネーミングの修正",
+            case: "途中でクライエントが「やっぱり怪獣じゃなくて、重い鎖のような感じがする」と言い出した時の対応は？",
+            options: [
+                { text: "A. 一度決めた名前を変えるのは良くないと伝える", correct: false },
+                { text: "B. 「重い鎖」という表現の方が、今のあなたにはしっくりくるんですね、と修正を受け入れる", correct: true },
+                { text: "C. 鎖だと擬人化にならないので、怪獣のままにしましょうと言う", correct: false }
+            ],
+            explanation: "具体化のプロセスは常に流動的です。本人の実感を最優先にし、しっくりくる表現へ更新し続けます。"
+        },
+        {
+            title: "共謀（チーム結成）",
+            case: "外在化によってカウンセラーとクライエントの関係はどう変わる？",
+            options: [
+                { text: "A. カウンセラーがクライエントを指導する関係", correct: false },
+                { text: "B. カウンセラーとクライエントが協力して、外にいる『問題』に対処するチームになる", correct: true },
+                { text: "C. どちらが正しいか議論する関係", correct: false }
+            ],
+            explanation: "敵が「本人の性格」ではなく「外のキャラクター」になるため、二人は同じ方向を向いて共闘する仲間（チーム）になれます。"
+        },
+        {
+            title: "ワークの目的",
+            case: "外在化のネーミングワークが成功したと言える状態は？",
+            options: [
+                { text: "A. 面白い名前がついて笑えた時", correct: false },
+                { text: "B. クライエントが問題を客観視でき、自分を責める気持ちが減って、対処への意欲が湧いた時", correct: true },
+                { text: "C. 問題が完全に消えてなくなった時", correct: false }
+            ],
+            explanation: "問題そのものが消えなくても、「自分を責めずに問題と付き合える（対処できる）」感覚が得られれば、それは大きな進歩です。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× やり直し）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">外在化のワーク完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                「人」と「問題」を切り離し、クリエイティブに名前をつけるスキルが磨かれました。<br>
+                この視点は、クライエントの自己効力感を高める強力な武器になります。
+            </p>
+            <div style="text-align:center; margin-top:20px;">
+                
+            </div>
+            <button class="next-btn" onclick="location.reload()">もう一度挑戦する</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

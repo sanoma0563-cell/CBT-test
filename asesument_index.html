@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>具体化のワーク演習：曖昧さを分解する</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f3e5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #7b1fa2;
+            background: #f3e5f5;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #4a148c;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #fafafa;
+            border-left: 5px solid #9c27b0;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .client-voice {
+            display: block;
+            background: #fff;
+            border: 1px dashed #ce93d8;
+            padding: 10px;
+            margin-top: 10px;
+            font-style: italic;
+            color: #6a1b9a;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #9c27b0;
+            background-color: #fdf0ff;
+        }
+        .option-btn.correct-choice {
+            background-color: #e8f5e9 !important;
+            border-color: #4caf50 !important;
+            color: #1b5e20;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #ffebee !important;
+            border-color: #f44336 !important;
+            color: #b71c1c;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #f3e5f5;
+            border: 1px solid #d1c4e9;
+            color: #4a148c;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #9c27b0;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "具体化の目的",
+            case: "クライエントが「最近、調子が悪いんです」と言いました。具体化（インタビュー）の目的として最も適切なのは？",
+            options: [
+                { text: "A. 調子が悪い理由を想像して、すぐにアドバイスするため", correct: false },
+                { text: "B. 『何が、いつ、どのように』起きているかを整理し、共有するため", correct: true },
+                { text: "C. クライエントの性格を分析するため", correct: false }
+            ],
+            explanation: "具体化の目的は、主観的な「ラベル（調子が悪い）」を、客観的な「エピソード」に分解し、対策可能な状態にすることです。"
+        },
+        {
+            title: "身体症状へのインタビュー",
+            case: "「なんとなく不安なんです」という訴えに対し、身体症状を具体化する質問は？",
+            options: [
+                { text: "A. どうして不安になるんですか？", correct: false },
+                { text: "B. その時、体ではどんな感じがしますか？（動悸や呼吸など）", correct: true },
+                { text: "C. 不安にならないように努力していますか？", correct: false }
+            ],
+            explanation: "「不安」という言葉を「心臓のバクバク」「手の震え」などの身体反応に分解すると、本人が今の状態を把握しやすくなります。"
+        },
+        {
+            title: "状況の特定（先行条件）",
+            case: "「会社に行きたくない」という曖昧な表現を具体化するのに適した質問は？",
+            options: [
+                { text: "A. 出勤前のどのタイミングで、一番強くそう感じますか？", correct: true },
+                { text: "B. 会社を辞めたいということですか？", correct: false },
+                { text: "C. 社会人なら誰でもそう思うものですよ", correct: false }
+            ],
+            explanation: "「会社」という大きな括りを、「日曜の夜」「駅の改札」「上司の顔を見た時」など、特定の場面（先行条件）まで絞り込みます。"
+        },
+        {
+            title: "思考の具体化",
+            case: "「頭がパニックになる」と言うクライエント。その時の『思考（頭の中の言葉）』を引き出す質問は？",
+            options: [
+                { text: "A. パニックを抑える薬は飲んでいますか？", correct: false },
+                { text: "B. その瞬間、頭の中にはどんな言葉やイメージが浮かんでいますか？", correct: true },
+                { text: "C. パニックにならない考え方を教えましょうか？", correct: false }
+            ],
+            explanation: "「パニック」というラベルを、「失敗したらどうしよう」「みんなに見られている」といった具体的な自動思考に分解します。"
+        },
+        {
+            title: "頻度と強度の測定",
+            case: "「いつもイライラしている」という訴えを具体化する数値化の質問は？",
+            options: [
+                { text: "A. 1日の中で、イライラしていない時間は全くありませんか？", correct: false },
+                { text: "B. 最大の怒りを10とすると、今はどのくらいですか？", correct: true },
+                { text: "C. イライラするのは性格の問題かもしれませんね", correct: false }
+            ],
+            explanation: "「いつも」という主観を、スケーリング（0-10の数値化）を用いることで、変化や強弱を客観的に捉え直します。"
+        },
+        {
+            title: "行動の連鎖を追う",
+            case: "「お菓子を食べてしまう」という行動を具体化するインタビューは？",
+            options: [
+                { text: "A. お菓子を食べる直前に、何をしていましたか？", correct: true },
+                { text: "B. お菓子は体に悪いと知っていますか？", correct: false },
+                { text: "C. 意志が弱いと思っていませんか？", correct: false }
+            ],
+            explanation: "行動の前後にある連鎖（きっかけと結果）を聞き出すことで、単なる「悪い癖」を「行動のパターン」として可視化します。"
+        },
+        {
+            title: "例外の探求",
+            case: "「何をやってもダメだ」という曖昧な全般化を崩すための質問は？",
+            options: [
+                { text: "A. 成功した時のことを思い出して頑張りましょう", correct: false },
+                { text: "B. 全くダメではなかった、わずかな例外（できた時）はありますか？", correct: true },
+                { text: "C. なぜダメだと思うようになったのですか？", correct: false }
+            ],
+            explanation: "「何をやっても」という極端な一般化を、具体的な「できた場面」を見つけることで分解していきます。"
+        },
+        {
+            title: "人間関係の具体化",
+            case: "「あの人とは合わない」という人間関係の悩みを具体化するには？",
+            options: [
+                { text: "A. 相手のどんな言動（言葉や態度）に、反応しているのでしょうか？", correct: true },
+                { text: "B. 仲良くしようと努力しましたか？", correct: false },
+                { text: "C. 相手を変えることはできませんよ", correct: false }
+            ],
+            explanation: "「合わない」という評価を、相手の「声のトーン」「特定の言葉」といった具体的な感覚情報まで落とし込みます。"
+        },
+        {
+            title: "『わからない』への対応",
+            case: "クライエントが「自分でも何が不安かわからない」と言った時の具体的なアプローチは？",
+            options: [
+                { text: "A. わかるまでじっくり待つ", correct: false },
+                { text: "B. 昨日の1日の流れを、ビデオで撮るように詳しく再現してみませんか？", correct: true },
+                { text: "C. 潜在意識に原因があるかもしれませんね", correct: false }
+            ],
+            explanation: "記憶が曖昧な時は、直近のエピソードを時系列で（ビデオ再生のように）具体的に再現してもらう手法が有効です。"
+        },
+        {
+            title: "具体化のゴール",
+            case: "カウンセリングにおける「具体化のワーク」の最終的な着地点は？",
+            options: [
+                { text: "A. 過去のトラウマをすべて特定すること", correct: false },
+                { text: "B. 曖昧な悩みが、具体的な『次の一歩（行動目標）』に変換されること", correct: true },
+                { text: "C. クライエントを論破すること", correct: false }
+            ],
+            explanation: "具体化によって問題が「見える化」されると、自ずと「じゃあ、この場面でこうしてみよう」という具体的な対策が見えてきます。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× もう一度考えてみよう）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">具体化のワーク完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                「わからない」を「事実・状況・反応」へと分解するインタビュー視点が身につきました。<br>
+                
+            </p>
+            <button class="next-btn" onclick="location.reload()">もう一度挑戦する</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

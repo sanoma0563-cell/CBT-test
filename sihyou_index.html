@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WISC/WAIS 指標分析シミュレーター</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .description {
+            background: #eef7fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2980b9;
+            display: flex;
+            justify-content: space-between;
+        }
+        .question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #fafafa;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 40px auto;
+        }
+        select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .footer-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WISC/WAIS 指標バランス分析</h1>
+    
+    <div class="description">
+        各項目の「得意・不得意」を5段階で選んでください。右側のチャートにあなたの特性バランスがリアルタイムで反映されます。<br>
+        <small>※これは簡易的な自己分析ツールであり、医療的な診断に代わるものではありません。</small>
+    </div>
+
+    <div class="section">
+        <div class="section-title">VCI：言語理解 <span>(言葉の力)</span></div>
+        <div class="question">言葉の意味を説明したり、共通点を見つけるのが得意だ <select class="score vci"><option value="3">3 (普通)</option><option value="5">5 (非常に得意)</option><option value="4">4</option><option value="2">2</option><option value="1">1 (非常に苦手)</option></select></div>
+        <div class="question">自分の考えを言葉で表現し、相手に伝えることがスムーズだ <select class="score vci"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">PRI：知覚推理 <span>(目で見て考える力)</span></div>
+        <div class="question">図形パズルや地図、グラフを読み取るのが得意だ <select class="score pri"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+        <div class="question">手本を見て同じものを作ったり、視覚的な法則を見つけるのが早い <select class="score pri"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">WMI：ワーキングメモリ <span>(記憶の保持)</span></div>
+        <div class="question">指示を一度に複数聞いても、忘れることなく処理できる <select class="score wmi"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+        <div class="question">暗算や、頭の中で情報を整理しながら作業するのが得意だ <select class="score wmi"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">PSI：処理速度 <span>(こなすスピード)</span></div>
+        <div class="question">単純な事務作業や書き写しなどを、正確かつ素早くこなせる <select class="score psi"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+        <div class="question">たくさんの情報の中から、特定の記号や間違いを見つけるのが早い <select class="score psi"><option value="3">3</option><option value="5">5</option><option value="4">4</option><option value="2">2</option><option value="1">1</option></select></div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="radarChart"></canvas>
+    </div>
+
+    <div class="footer-info">
+        <h3>指標の見方：</h3>
+        <ul>
+            <li><strong>VCI（言語理解）</strong>：言葉の知識、論理的思考、一般常識など。</li>
+            <li><strong>PRI（知覚推理）</strong>：視覚情報の統合、空間把握、推論など。</li>
+            <li><strong>WMI（ワーキングメモリ）</strong>：集中力、一時的な記憶の保持能力。</li>
+            <li><strong>PSI（処理速度）</strong>：視覚情報の処理スピード、手先の器用さ。</li>
+        </ul>
+        <p>※凹凸（差）が大きい場合、得意な部分を活かし、苦手な部分を環境調整でカバーする戦略が有効です。</p>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="padding: 12px 25px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">結果を保存・印刷する</button>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    let radarChart;
+
+    function getAverageScore(className) {
+        const elements = document.querySelectorAll(className);
+        let sum = 0;
+        elements.forEach(el => sum += parseInt(el.value));
+        return sum / elements.length;
+    }
+
+    function updateChart() {
+        const data = [
+            getAverageScore('.vci'),
+            getAverageScore('.pri'),
+            getAverageScore('.wmi'),
+            getAverageScore('.psi')
+        ];
+
+        if (radarChart) {
+            radarChart.data.datasets[0].data = data;
+            radarChart.update();
+        } else {
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['VCI 言語理解', 'PRI 知覚推理', 'WMI ワーキングメモリ', 'PSI 処理速度'],
+                    datasets: [{
+                        label: 'あなたの特性バランス',
+                        data: data,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 1,
+                            suggestedMax: 5,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    document.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', updateChart);
+    });
+
+    // 初期化
+    updateChart();
+</script>
+
+</body>
+</html>

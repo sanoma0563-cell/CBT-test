@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セルフモニタリング・シート作成演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #2c5282;
+            background: #ebf8ff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #2a4365;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #f7fafc;
+            border-left: 5px solid #4299e1;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #4299e1;
+            background-color: #f0f9ff;
+        }
+        .option-btn.correct-choice {
+            background-color: #c6f6d5 !important;
+            border-color: #48bb78 !important;
+            color: #22543d;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #fed7d7 !important;
+            border-color: #f56565 !important;
+            color: #742a2a;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            color: #2a4365;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "シート設計の優先順位",
+            case: "記録が続かないクライエントに対して、最初に検討すべきシートのデザイン変更は？",
+            options: [
+                { text: "A. 自由記述欄を増やして、詳細に書けるようにする", correct: false },
+                { text: "B. 記入項目を絞り込み、チェックを入れるだけの『選択式』を増やす", correct: true },
+                { text: "C. 記録漏れがあった時の罰則を明記する", correct: false }
+            ],
+            explanation: "記入の心理的ハードルを下げるのがコツです。「書く」負担を「選ぶ（チェックする）」負担まで軽減することが継続の鍵です。"
+        },
+        {
+            title: "ライフスタイルへの適合",
+            case: "「仕事が忙しくて机でゆっくり書く時間がない」という人への最適な提案は？",
+            options: [
+                { text: "A. A4サイズの本格的な記録帳を持ち歩くよう勧める", correct: false },
+                { text: "B. スマホのメモ帳やカウンターアプリ、付箋など、隙間時間に使えるツールにする", correct: true },
+                { text: "C. 仕事を休んででも記録する時間を確保させる", correct: false }
+            ],
+            explanation: "シートは「生活の隙間」に入り込む必要があります。クライエントの日常生活の動線（スマホを触る、手帳を見る等）に合わせましょう。"
+        },
+        {
+            title: "強度の数値化（スケーリング）",
+            case: "感情の変化を記録する際、シートに盛り込むべき工夫は？",
+            options: [
+                { text: "A. 0〜10の数字で、その時の気分の強さを選べるようにする", correct: true },
+                { text: "B. 『かなり不安』『少し不安』などの言葉だけで書かせる", correct: false },
+                { text: "C. 感情については記録しない", correct: false }
+            ],
+            explanation: "数値化（スケーリング）を行うことで、後からグラフ化しやすくなり、変化を客観的に視覚化できます。"
+        },
+        {
+            title: "ABC記録の簡略化",
+            case: "状況(A)・行動(B)・結果(C)を記録する際、負担を減らすシートの工夫は？",
+            options: [
+                { text: "A. よくある先行条件（場所や人）をあらかじめ印刷し、丸をつけるだけにする", correct: true },
+                { text: "B. 全て日記形式で文章を書かせる", correct: false },
+                { text: "C. A、B、Cの意味を詳しく解説した説明文を全ページに載せる", correct: false }
+            ],
+            explanation: "「自宅」「職場」「上司」「午前」など、頻出する要素をテンプレート化しておくことで、記録のスピードが劇的に上がります。"
+        },
+        {
+            title: "標的行動の具体化",
+            case: "シートのタイトルとして、より記録がしやすくなるのはどっち？",
+            options: [
+                { text: "A. 『イライラしないための記録帳』", correct: false },
+                { text: "B. 『深呼吸または1分間休憩ができた回数シート』", correct: true },
+                { text: "C. 『自分の欠点を直す日記』", correct: false }
+            ],
+            explanation: "否定的な表現（〜しない）よりも、代替行動や具体的な目標行動のカウントにする方が、達成感を得やすく記録が前向きになります。"
+        },
+        {
+            title: "リマインダーの組み込み",
+            case: "「記録すること自体を忘れてしまう」人へのシート上の工夫は？",
+            options: [
+                { text: "A. スマホの通知設定と連動させるか、目につく場所に貼れるミニサイズにする", correct: true },
+                { text: "B. 忘れた自分を責める欄を作る", correct: false },
+                { text: "C. 忘れないように呪文を書いておく", correct: false }
+            ],
+            explanation: "記録の「きっかけ（先行刺激）」を環境に配置することが重要です。冷蔵庫や鏡など、必ず見る場所にシートを配置するデザインも有効です。"
+        },
+        {
+            title: "ポジティブな項目の追加",
+            case: "問題行動だけでなく、シートに含めると治療効果が高まりやすい項目は？",
+            options: [
+                { text: "A. その日の自分へのダメ出し欄", correct: false },
+                { text: "B. 『今日できたこと』や『気分が1ミリでも上がった瞬間』の記録欄", correct: true },
+                { text: "C. 将来への不安を書く欄", correct: false }
+            ],
+            explanation: "リソース（資源）や成功体験を記録することで、自己効力感が高まり、モニタリング自体が楽しいものへと変わります。"
+        },
+        {
+            title: "期間の設定",
+            case: "初めてモニタリングを導入する際、最初に提示する記録期間として適切なのは？",
+            options: [
+                { text: "A. 3ヶ月間は毎日必ず書き続けてくださいと言う", correct: false },
+                { text: "B. 『まずは次の面談までの3日間だけ試してみませんか？』と提案する", correct: true },
+                { text: "C. 一生続ける覚悟があるか確認する", correct: false }
+            ],
+            explanation: "「3日間だけ」というスモールステップで提示し、無理なく始められるように心理的障壁を取り除きます。"
+        },
+        {
+            title: "視覚的デザインの工夫",
+            case: "記録に対する嫌悪感を減らすためのデザイン的アプローチは？",
+            options: [
+                { text: "A. 『監視』をイメージさせる白黒の事務的な表にする", correct: false },
+                { text: "B. クライエントが好きな色やキャラクター、シールなどを使える余白を作る", correct: true },
+                { text: "C. 文字をできるだけ小さく詰め込む", correct: false }
+            ],
+            explanation: "「自分自身のプロジェクト」として愛着を持ってもらうための遊び心も、継続には非常に重要です。"
+        },
+        {
+            title: "フィードバックへの橋渡し",
+            case: "シートの最後に設けるべき、セルフケアを促す欄は？",
+            options: [
+                { text: "A. 誰が悪いかを書く他責欄", correct: false },
+                { text: "B. 記録を見て気づいたことや、自分へのねぎらいを書く一言欄", correct: true },
+                { text: "C. 明日の天気予報欄", correct: false }
+            ],
+            explanation: "ただのデータの羅列で終わらせず、自分で自分を観察（客観視）して評価するプロセスをシートに組み込みます。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× もっと負担を減らす方法はないかな？）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">シート作成演習完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                「クライエントに優しい」かつ「分析に役立つ」シートを設計するコツが掴めました。<br>
+                
+            </p>
+            <button class="next-btn" onclick="location.reload()">最初からやり直す</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

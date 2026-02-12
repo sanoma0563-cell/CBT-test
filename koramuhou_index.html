@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>コラム法（セルフモニタリング）シート</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f4f7f6;
+            line-height: 1.6;
+            color: #333;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 24px;
+            border-bottom: 3px solid #4a6cf7;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            background-color: #edf2ff;
+            padding: 15px;
+            border-left: 5px solid #4a6cf7;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .date-section {
+            text-align: right;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+
+        .date-input {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        /* テーブルスタイル */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+
+        th {
+            background-color: #4a6cf7;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            border: 1px solid #3d5ad0;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .input-area {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            box-sizing: border-box;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+
+        .input-area:focus {
+            background-color: #fafaff;
+        }
+
+        .hint {
+            padding: 10px 15px;
+            background-color: #f9f9f9;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px dashed #eee;
+        }
+
+        .example-box {
+            margin-top: 5px;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* 印刷ボタン */
+        .print-btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .print-btn {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(74, 108, 247, 0.3);
+        }
+
+        .print-btn:hover {
+            background-color: #3651c9;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: none; }
+            th { background-color: #eee !important; color: black; border: 1px solid #000; }
+            td { border: 1px solid #000; }
+            .input-area { min-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>状況・気分・自動思考のコラム</h1>
+
+    <div class="description">
+        心が動揺したとき、何が起きて（状況）、どう感じて（気分）、何が頭に浮かんだか（自動思考）を書き出してみましょう。
+        各枠内を<strong>ダブルクリック</strong>して入力してください。
+    </div>
+
+    <div class="date-section">
+        記入日：<input type="date" id="colDate" class="date-input">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">状況</th>
+                <th style="width: 25%;">気分</th>
+                <th style="width: 45%;">自動思考</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="input-area" contenteditable="true" title="ダブルクリックで入力"></div>
+                    <div class="hint">
+                        どこで、誰が、何をした？<br>
+                        <div class="example-box">例：会議中に質問されたが、うまく答えられなかった。</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-area" contenteditable="true" title="ダブルクリックで入力"></div>
+                    <div class="hint">
+                        一言で表すと？ 強さは(0-100%)？<br>
+                        <div class="example-box">例：不安 80%、恥ずかしさ 70%</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-area" contenteditable="true" title="ダブルクリックで入力"></div>
+                    <div class="hint">
+                        頭に浮かんだ言葉やイメージは？<br>
+                        <div class="example-box">例：みんなに無能だと思われた。もうこの場所にはいられない。</div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; font-size: 12px; color: #95a5a6; text-align: center;">
+        ※書き出すことで、感情に振り回されず自分を客観視する「心の筋トレ」になります。
+    </div>
+
+    <div class="no-print print-btn-container">
+        <button class="print-btn" onclick="window.print()">このコラムを印刷・PDF保存する</button>
+    </div>
+</div>
+
+<script>
+    // 今日の日付を初期値としてセット
+    window.onload = function() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = ("0" + (today.getMonth() + 1)).slice(-2);
+        const dd = ("0" + today.getDate()).slice(-2);
+        document.getElementById("colDate").value = yyyy + "-" + mm + "-" + dd;
+    };
+</script>
+
+</body>
+</html>

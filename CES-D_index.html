@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CES-D 抑うつ尺度チェックシート</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #455a64;
+            border-bottom: 3px solid #90a4ae;
+            padding-bottom: 10px;
+        }
+
+        /* 活用のポイントボタン */
+        .info-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background-color: #90a4ae;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .description {
+            background-color: #eceff1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: #607d8b;
+            color: white;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question-text {
+            font-size: 15px;
+            width: 50%;
+        }
+
+        .radio-cell {
+            text-align: center;
+            width: 12.5%;
+        }
+
+        .reverse-label {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        /* スコア表示エリア */
+        .result-area {
+            background: #fdfdfd;
+            border: 2px solid #607d8b;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .score-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #c62828;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 25px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 12px;
+        }
+
+        .point-title { font-weight: bold; color: #455a64; display: block; margin-top: 15px; }
+
+        @media print {
+            .no-print, .info-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="info-btn no-print" onclick="toggleModal()">?</button>
+    <h1>CES-D 抑うつ尺度チェックシート</h1>
+
+    <div class="description">
+        <strong>【回答方法】</strong><br>
+        この1週間、次のようなことがどのくらいありましたか？今のあなたの気持ちに最も近いものにチェックを入れてください。
+    </div>
+
+    <form id="cesdForm">
+        <table>
+            <thead>
+                <tr>
+                    <th>質問項目</th>
+                    <th>ない<br>(週1日未満)</th>
+                    <th>たまにある<br>(週1-2日)</th>
+                    <th>よくある<br>(週3-4日)</th>
+                    <th>ほとんど毎日<br>(週5日以上)</th>
+                </tr>
+            </thead>
+            <tbody id="questionsTable">
+                </tbody>
+        </table>
+    </form>
+
+    <div class="result-area no-print">
+        <button onclick="calculateScore()" style="padding: 10px 30px; background: #607d8b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">合計スコアを計算する</button>
+        <div style="margin-top: 15px;">
+            あなたの現在のスコア：<span id="totalScore" class="score-display">--</span> 点
+        </div>
+        <p id="evaluationText" style="margin-top: 10px; font-weight: bold;"></p>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 20px;">
+        <button onclick="window.print()" style="padding: 8px 20px; background: #eee; border: 1px solid #ccc; cursor: pointer;">結果を印刷 / 保存</button>
+    </div>
+</div>
+
+<div id="infoModal" class="modal" onclick="toggleModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color: #455a64; margin-top: 0;">CES-D活用のポイント</h2>
+        
+        <span class="point-title">● CES-Dとは？</span>
+        米国国立精神保健研究所（NIMH）が開発した、抑うつ状態のスクリーニング検査です。
+        
+        <span class="point-title">● カットオフ値（目安）</span>
+        <strong>16点以上</strong>が抑うつ状態の目安とされています。ただし、この数値だけで「うつ病」と診断されるわけではありません。
+        
+        <span class="point-title">● 反転項目に注意</span>
+        質問の「4, 8, 12, 16」は、前向きな内容になっています。これらは「楽しいことが少ないほど高得点」になるよう逆転して採点されます（このシートでは自動計算されます）。
+
+        <span class="point-title">● 変化を捉える</span>
+        一度の点数に一喜一憂するのではなく、定期的に（例えば2週間に一度など）測定し、自分の調子の波を可視化することが大切です。
+
+        <button onclick="toggleModal()" style="width: 100%; margin-top: 20px; padding: 10px; background: #607d8b; color: white; border: none; border-radius: 5px; cursor: pointer;">閉じる</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        "普段は何とも思わないことが、煩わしく感じた",
+        "食べたくなかった（食欲が落ちた）",
+        "家族や友人の助けがあっても、沈んだ気分が晴れなかった",
+        "自分は他の人と同じくらい能力があると思った", // 逆転
+        "物事に集中できなかった",
+        "憂うつだった",
+        "何をするのも骨折りだった（億劫だった）",
+        "将来に対して希望を感じた", // 逆転
+        "自分の人生は失敗だと思った",
+        "恐ろしい気持ちになった",
+        "眠れなかった",
+        "幸せな気分だった", // 逆転
+        "いつもより口数が少なかった",
+        "一人ぼっちで寂しかった",
+        "周りの人が冷たい（自分に友好的でない）と感じた",
+        "毎日が楽しかった", // 逆転
+        "泣き出したくなることがあった",
+        "悲しかった",
+        "周りの人が自分を嫌っていると感じた",
+        "仕事や活動が手につかなかった"
+    ];
+
+    const reverseItems = [3, 7, 11, 15]; // 0始まりのインデックス
+
+    const tbody = document.getElementById('questionsTable');
+
+    questions.forEach((q, index) => {
+        const isReverse = reverseItems.includes(index);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="question-text">${index + 1}. ${q} ${isReverse ? '<span class="reverse-label">(※)</span>' : ''}</td>
+            <td class="radio-cell"><input type="radio" name="q${index}" value="0"></td>
+            <td class="radio-cell"><input type="radio" name="q${index}" value="1"></td>
+            <td class="radio-cell"><input type="radio" name="q${index}" value="2"></td>
+            <td class="radio-cell"><input type="radio" name="q${index}" value="3"></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    function calculateScore() {
+        let total = 0;
+        let answeredCount = 0;
+
+        questions.forEach((q, index) => {
+            const radios = document.getElementsByName(`q${index}`);
+            let val = -1;
+            for (const r of radios) {
+                if (r.checked) {
+                    val = parseInt(r.value);
+                    break;
+                }
+            }
+
+            if (val !== -1) {
+                answeredCount++;
+                if (reverseItems.includes(index)) {
+                    total += (3 - val); // 逆転項目
+                } else {
+                    total += val;
+                }
+            }
+        });
+
+        if (answeredCount < 20) {
+            alert("まだ未回答の項目があります。20項目すべて入力してください。");
+            return;
+        }
+
+        document.getElementById('totalScore').innerText = total;
+        
+        let eval = "";
+        if (total >= 16) {
+            eval = "16点以上です。抑うつ傾向が認められます。専門機関への相談や休息を検討してください。";
+        } else {
+            eval = "16点未満です。現在のところ抑うつ傾向は高くありません。";
+        }
+        document.getElementById('evaluationText').innerText = eval;
+    }
+
+    function toggleModal() {
+        const m = document.getElementById('infoModal');
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>

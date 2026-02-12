@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行動分析基礎：ピンポイント行動作成ワーク</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f4f7f9;
+            line-height: 1.6;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #1a5276;
+            border-bottom: 3px solid #5dade2;
+            padding-bottom: 10px;
+        }
+        .intro {
+            background-color: #ebf5fb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            border-left: 5px solid #1a5276;
+        }
+        .question-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+        }
+        .q-title {
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .q-text {
+            font-size: 16px;
+            margin-bottom: 15px;
+            background: #fff9f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .option-btn:hover { background: #f0f0f0; }
+        
+        .feedback {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .wrong { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .check-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: #1a5276;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .footer-note {
+            background: #fdfefe;
+            border: 1px solid #d5dbdb;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 10px;
+        }
+        .label-dead { background: #e74c3c; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; }
+
+        @media print {
+            .check-btn, .feedback { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ピンポイント行動作成ワーク</h1>
+    
+    <div class="intro">
+        <strong>学習目標：</strong> 曖昧なラベル（状態語）を、誰が見ても測定可能な「ピンポイント行動」に書き換える技術を習得します。<br>
+        <strong>死人のテスト：</strong> 「死人にできないことは行動である」という原則を意識しましょう。
+    </div>
+
+    <div id="quiz-container">
+        <div class="question-card">
+            <span class="q-title">問1. 「やる気がない」をピンポイント行動に書き換えるなら？</span>
+            <p class="q-text">対象：自宅で勉強をしない中学生</p>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(1, 'A')">A. もっと意欲的に取り組むように言う</button>
+                <button class="option-btn" onclick="showFeedback(1, 'B')">B. 20時になったら机に向かい、数学のワークを1ページ開く</button>
+                <button class="option-btn" onclick="showFeedback(1, 'C')">C. 勉強の大切さを理解させる</button>
+            </div>
+            <div id="fb1" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問2. 「態度が悪い」をピンポイント行動に書き換えるなら？</span>
+            <p class="q-text">対象：接客中、顧客に不快感を与える店員</p>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(2, 'A')">A. プロ意識を持って行動する</button>
+                <button class="option-btn" onclick="showFeedback(2, 'B')">B. 顧客を敬う気持ちを忘れない</button>
+                <button class="option-btn" onclick="showFeedback(2, 'C')">C. 顧客と目が合った際、口角を上げ「いらっしゃいませ」と言う</button>
+            </div>
+            <div id="fb2" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問3. 次のうち「死人のテスト」をクリアしている（＝行動である）ものはどれ？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(3, 'A')">A. 授業中に騒がない</button>
+                <button class="option-btn" onclick="showFeedback(3, 'B')">B. 廊下を走らずに、ゆっくり歩く</button>
+                <button class="option-btn" onclick="showFeedback(3, 'C')">C. 先生の言うことを無視しない</button>
+            </div>
+            <div id="fb3" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問4. 「コミュニケーション能力が低い」という課題への具体的アプローチは？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(4, 'A')">A. 挨拶されたら、相手の目を見て返事をする</button>
+                <button class="option-btn" onclick="showFeedback(4, 'B')">B. 相手の気持ちを察して行動する</button>
+                <button class="option-btn" onclick="showFeedback(4, 'C')">C. 会話を盛り上げる努力をする</button>
+            </div>
+            <div id="fb4" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問5. 「片付けができない」を改善するためのピンポイント行動は？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(5, 'A')">A. 部屋をきれいに保つ意識を持つ</button>
+                <button class="option-btn" onclick="showFeedback(5, 'B')">B. 脱いだ服をハンガーにかけ、クローゼットに入れる</button>
+                <button class="option-btn" onclick="showFeedback(5, 'C')">C. 出したものをそのままにしない</button>
+            </div>
+            <div id="fb5" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問6. ピンポイント行動（具体的行動）の定義として「誤っている」ものはどれ？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(6, 'A')">A. 第三者が数えることができる</button>
+                <button class="option-btn" onclick="showFeedback(6, 'B')">B. 本人の性格や気質を表している</button>
+                <button class="option-btn" onclick="showFeedback(6, 'C')">C. いつ、どこでやるかが明確である</button>
+            </div>
+            <div id="fb6" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問7. 「仕事のミスが多い」という状態を分析する際、最初にすべき書き換えは？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(7, 'A')">A. 集中して作業に取り組む</button>
+                <button class="option-btn" onclick="showFeedback(7, 'B')">B. 注意深く確認する</button>
+                <button class="option-btn" onclick="showFeedback(7, 'C')">C. 提出前にチェックリストの5項目にレ点を入れる</button>
+            </div>
+            <div id="fb7" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問8. 「自信がない」というクライエントに対し、行動分析の視点で提案するスモールステップは？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(8, 'A')">A. 毎朝、鏡を見て自分を褒める（ポジティブ思考）</button>
+                <button class="option-btn" onclick="showFeedback(8, 'B')">B. 1日3回、感謝の日記をノートに1行書く</button>
+                <button class="option-btn" onclick="showFeedback(8, 'C')">C. 自己肯定感を高める本を読み、心を整える</button>
+            </div>
+            <div id="fb8" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問9. 「健康管理が疎かだ」を具体的行動にするなら？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(9, 'A')">A. 万歩計をつけて、1日5000歩歩く</button>
+                <button class="option-btn" onclick="showFeedback(9, 'B')">B. バランスの良い食事を心がける</button>
+                <button class="option-btn" onclick="showFeedback(9, 'C')">C. 夜更かしをしない</button>
+            </div>
+            <div id="fb9" class="feedback"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-title">問10. ピンポイント行動を設定する最大のメリットは？</span>
+            <div class="options">
+                <button class="option-btn" onclick="showFeedback(10, 'A')">A. 本人の反省を促すことができる</button>
+                <button class="option-btn" onclick="showFeedback(10, 'B')">B. 性格を根本から変えることができる</button>
+                <button class="option-btn" onclick="showFeedback(10, 'C')">C. 達成できたかどうかが明確で、称賛（強化）しやすくなる</button>
+            </div>
+            <div id="fb10" class="feedback"></div>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <h3>💡 まとめ：カウンセラーとしての視点</h3>
+        <p>クライエントが「私はだめな人間です」と言ったとき、それは行動分析では<strong>ラベル（状態語）</strong>にすぎません。「具体的に、いつ、どんな場面で、どんな行動（または不作為）があったのか」をピンポイント行動に落とし込むことで、初めて改善のスタートラインに立てます。</p>
+        <p><span class="label-dead">死人のテスト</span>：死人にできないこと（例：歩く、喋る、書く）は行動です。死人にもできること（例：静かにする、何もしない、無視する）は、厳密には行動分析のターゲットとしては不十分です。肯定的な行動を定義しましょう。</p>
+    </div>
+</div>
+
+<script>
+    const feedbacks = {
+        1: { correct: 'B', text: '「意欲」や「理解」は心の中の状態で、他人には見えません。Bのように「時間」「場所」「動作」が指定されているのがピンポイント行動です。' },
+        2: { correct: 'C', text: '「プロ意識」や「敬う気持ち」は解釈が分かれます。Cのように「口角を上げる」「挨拶する」は誰が見ても分かります。' },
+        3: { correct: 'B', text: '「騒がない」「無視しない」は死人でもできます。Bの「歩く」は死人にはできません。これが「行動」です。' },
+        4: { correct: 'A', text: '「察する」「盛り上げる」は曖昧です。「目を見て返事をする」は具体的で練習可能なスキルです。' },
+        5: { correct: 'B', text: '「意識を持つ」は状態語、「そのままにしない」は不作為（死人のテスト不合格）。Bは明確な動作です。' },
+        6: { correct: 'B', text: '行動分析では性格や気質は扱いません。目に見える「行動」そのものに焦点を当てます。' },
+        7: { correct: 'C', text: '「集中」「注意」は精神論になりがちです。Cのようにチェックリストという物理的行動に落とし込むのが効果的です。' },
+        8: { correct: 'B', text: '「自信」という感情を直接操作するのは困難です。Bのような「記録する」という行動の蓄積が結果として自信に繋がります。' },
+        9: { correct: 'A', text: '「心がける」「夜更かししない」よりも、「5000歩」という数値目標の方が測定可能です。' },
+        10: { correct: 'C', text: '曖昧だと「できたかどうか」で揉めます。明確に定義することで、適切なフィードバック（強化）が可能になります。' }
+    };
+
+    function showFeedback(qNum, choice) {
+        const fbDiv = document.getElementById(`fb${qNum}`);
+        const data = feedbacks[qNum];
+        fbDiv.style.display = 'block';
+        
+        if (choice === data.correct) {
+            fbDiv.className = 'feedback correct';
+            fbDiv.innerHTML = `<strong>正解！</strong><br>${data.text}`;
+        } else {
+            fbDiv.className = 'feedback wrong';
+            fbDiv.innerHTML = `<strong>不正解...</strong><br>${data.text}`;
+        }
+    }
+</script>
+
+</body>
+</html>

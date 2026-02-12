@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スケーリング・クエスチョン実践演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fff3e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #e65100;
+            background: #ffe0b2;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #bf360c;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #fffaf0;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #ff9800;
+            background-color: #fffef0;
+        }
+        .option-btn.correct-choice {
+            background-color: #e8f5e9 !important;
+            border-color: #4caf50 !important;
+            color: #1b5e20;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #ffebee !important;
+            border-color: #f44336 !important;
+            color: #b71c1c;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #fff3e0;
+            border: 1px solid #ffcc80;
+            color: #5d4037;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "数値化の導入（スケールの定義）",
+            case: "「最悪な気分です」と語るクライエント。スケーリングを導入する際、最初に伝えるべき設定は？",
+            options: [
+                { text: "A. 100点満点で、今の偏差値を教えてください", correct: false },
+                { text: "B. 最も絶望的な状態を0、望ましい状態を10とすると、今は何点くらいですか？", correct: true },
+                { text: "C. 5点満点の中で、普通なのが3点だと考えてください", correct: false }
+            ],
+            explanation: "0（最悪・不在）から10（最高・実現）の11段階で設定するのが一般的です。基準を明確に共有することが重要です。"
+        },
+        {
+            title: "0点ではない理由（リソースの発見）",
+            case: "クライエントが「今は1点です」と答えました。次に続く、変化を見つけるための質問は？",
+            options: [
+                { text: "A. なぜそんなに低い点数なんですか？", correct: false },
+                { text: "B. どうすれば10点になりますか？", correct: false },
+                { text: "C. 0点ではなく、1点あるのは『何があるから』だと思いますか？", correct: true }
+            ],
+            explanation: "あえて「なぜ0点ではないのか」を問うことで、本人が気づいていない維持要因や小さな力を引き出します。"
+        },
+        {
+            title: "わずかな向上の探索",
+            case: "「先週は1点でしたが、今日は2点です」という答えに対し、具体化を促す質問は？",
+            options: [
+                { text: "A. その『1点の差』には、何が起きているのでしょうか？", correct: true },
+                { text: "B. たった1点しか上がっていないのは不安ですね", correct: false },
+                { text: "C. すぐに5点まで上げられそうですか？", correct: false }
+            ],
+            explanation: "1点と2点の「違い」に焦点を当てます。この小さな差の中に、改善のヒントや本人の工夫が隠されています。"
+        },
+        {
+            title: "未来のスケーリング（一歩先）",
+            case: "現在3点のクライエント。次に目指すべき目標の聞き方として最適なのは？",
+            options: [
+                { text: "A. 10点になるために死ぬ気で頑張れますか？", correct: false },
+                { text: "B. もし、今の3点が『4点』になったとしたら、生活の何が変わっているでしょうか？", correct: true },
+                { text: "C. 3点からいきなり8点にする方法を考えましょう", correct: false }
+            ],
+            explanation: "「プラス1点」という、達成可能で具体的な変化をイメージさせることが、行動活性化につながります。"
+        },
+        {
+            title: "例外の発見（最高値の探索）",
+            case: "「いつも0点に近い」という全般化に対し、例外を探るスケーリングは？",
+            options: [
+                { text: "A. この1週間の中で、一番点数が高かった瞬間は何点でしたか？", correct: true },
+                { text: "B. ずっと0点なら、もう打つ手はありませんね", correct: false },
+                { text: "C. 0点なのはあなたの考え方のせいですよ", correct: false }
+            ],
+            explanation: "「いつも」という思い込みを数値で分解します。たとえ0.5点でも「マシな時間」があれば、そこに対処のヒントがあります。"
+        },
+        {
+            title: "他者の視点を取り入れる",
+            case: "自分を低く見積もる人への、関係的スケーリングの質問は？",
+            options: [
+                { text: "A. あなたの点数は低すぎます", correct: false },
+                { text: "B. もしあなたの大切な友人が今のあなたを見たら、何点だと言うでしょうか？", correct: true },
+                { text: "C. 誰か他の人に点数をつけてもらいましょうか？", correct: false }
+            ],
+            explanation: "他者の視点を借りることで、自分への厳しすぎる評価（主観）を緩和し、客観的な良さに気づかせます。"
+        },
+        {
+            title: "維持の確認（踏みとどまる力）",
+            case: "「ずっと2点から変わりません」という停滞感に対し、リソースを承認する質問は？",
+            options: [
+                { text: "A. 2点を維持できているのは、あなたが何を頑張っているからでしょうか？", correct: true },
+                { text: "B. 2点で満足してしまっているのではないですか？", correct: false },
+                { text: "C. 変化がないなら、このワークは意味がありませんね", correct: false }
+            ],
+            explanation: "「現状維持」も一つの成果です。さらに悪化させずに踏みとどまっている本人の力を数値で肯定します。"
+        },
+        {
+            title: "具体的行動への変換",
+            case: "「4点になったら、今より少し前向きになれる」と言う人への、行動への具体化質問は？",
+            options: [
+                { text: "A. 前向きな気持ちを言葉で説明してください", correct: false },
+                { text: "B. 4点のあなたが、朝起きて最初に取る『4点らしい行動』は何ですか？", correct: true },
+                { text: "C. 前向きになれば、点数は自然に上がりますよ", correct: false }
+            ],
+            explanation: "数値の変化を「観察可能な行動」に結びつけることで、クライエントが具体的に何をすればいいかを明確にします。"
+        },
+        {
+            title: "自信のスケーリング",
+            case: "「4点に上げるための行動」を決めた後、その実行可能性を確認する質問は？",
+            options: [
+                { text: "A. その行動を絶対にやると約束してください", correct: false },
+                { text: "B. それをやる自信は、10点満点中、今何点くらいありますか？", correct: true },
+                { text: "C. 自信がなくてもやるのがセラピーです", correct: false }
+            ],
+            explanation: "「自信の尺度」を測ります。もし自信が5点以下なら、目標が高すぎると判断し、ハードルを下げる調整を行います。"
+        },
+        {
+            title: "スケーリング・クエスチョンの極意",
+            case: "この技法を使う上で、最も大切にすべき姿勢は？",
+            options: [
+                { text: "A. 低い点数が出たら、厳しく叱咤激励すること", correct: false },
+                { text: "B. 数値の背景にある『クライエント自身の意味づけ』を丁寧に聴くこと", correct: true },
+                { text: "C. できるだけ早く10点に到達させること", correct: false }
+            ],
+            explanation: "数値はあくまで入り口です。その数値が本人にとって何を意味し、何に支えられているのかを対話することが本質です。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× 数値を使って『例外』や『リソース』を探してみよう）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">スケーリング演習完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                曖昧な言葉を「数値」というハシゴに変えて、一歩ずつ進む支援の準備が整いました。<br>
+                
+            </p>
+            <button class="next-btn" onclick="location.reload()">もう一度挑戦する</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

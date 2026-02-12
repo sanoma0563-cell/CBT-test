@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASD特性振り返りワークシート（PARS視点）</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fcf8ff;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #6a1b9a;
+            border-bottom: 3px solid #e1bee7;
+            padding-bottom: 10px;
+        }
+
+        /* 活用のポイントボタン */
+        .info-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background-color: #9c27b0;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .description {
+            background-color: #f3e5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            border-left: 5px solid #9c27b0;
+        }
+
+        .section-header {
+            background-color: #6a1b9a;
+            color: white;
+            padding: 10px;
+            margin-top: 30px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th {
+            background-color: #f3e5f5;
+            padding: 10px;
+            font-size: 13px;
+            border-bottom: 2px solid #ce93d8;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question-text { font-size: 14px; width: 60%; }
+        .radio-cell { text-align: center; width: 13%; }
+
+        /* スコア表示 */
+        .result-box {
+            background: #fafafa;
+            border: 2px dashed #9c27b0;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .score-num { font-size: 28px; font-weight: bold; color: #6a1b9a; }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 8% auto;
+            padding: 25px;
+            width: 85%;
+            max-width: 600px;
+            border-radius: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .point-title { font-weight: bold; color: #6a1b9a; display: block; margin-top: 15px; border-left: 3px solid #9c27b0; padding-left: 8px; }
+
+        @media print {
+            .no-print, .info-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="info-btn no-print" onclick="toggleModal()">?</button>
+    <h1>ASD特性振り返りシート（PARS視点）</h1>
+
+    <div class="description">
+        自閉スペクトラム症（ASD）の指標であるPARSの視点に基づいた振り返りです。<br>
+        「幼少期（小中学生まで）」と「現在」について、当てはまる程度を選んでください。
+    </div>
+
+    <form id="parsForm">
+        <div class="section-header">1. 幼少期の特性（振り返り）</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>なし(0)</th>
+                    <th>少し(1)</th>
+                    <th>目立つ(2)</th>
+                </tr>
+            </thead>
+            <tbody id="childhoodTable"></tbody>
+        </table>
+
+        <div class="section-header">2. 現在の特性・困りごと</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>なし(0)</th>
+                    <th>少し(1)</th>
+                    <th>目立つ(2)</th>
+                </tr>
+            </thead>
+            <tbody id="currentTable"></tbody>
+        </table>
+    </form>
+
+    <div class="result-box no-print">
+        <button onclick="calculate()" style="padding: 10px 30px; background: #6a1b9a; color: white; border: none; border-radius: 5px; cursor: pointer;">集計する</button>
+        <div style="margin-top:15px;">
+            幼少期スコア: <span id="childScore" class="score-num">--</span> 点 / 
+            現在スコア: <span id="currentScore" class="score-num">--</span> 点
+        </div>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 20px;">
+        <button onclick="window.print()" style="padding: 8px 20px; background: #eee; border: 1px solid #ccc; cursor: pointer;">印刷用画面へ</button>
+    </div>
+</div>
+
+<div id="infoModal" class="modal" onclick="toggleModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color: #6a1b9a; margin-top: 0;">活用のポイント</h2>
+        
+        <span class="point-title">PARS（パルス）とは？</span>
+        日本で開発された自閉スペクトラム症（ASD）の評定尺度です。最大の特徴は、<b>「幼少期の特性」</b>を重視する点にあります。
+        
+        <span class="point-title">なぜ幼少期を振り返るのか？</span>
+        大人のASDの場合、成長過程で「社会適応スキル」を身につけ、表面上は特性が見えにくくなっている（マスキング）ことが多いためです。診断の場でも、幼少期の様子は重要な証拠になります。
+
+        <span class="point-title">点数の捉え方</span>
+        このシートは診断用ではありませんが、一般的に点数が高いほどASD特性が強く、日常生活で何らかの配慮や工夫が必要な可能性を示唆します。
+        
+        <span class="point-title">支援の手がかりに</span>
+        「どこに点数がついたか」を見てください。対人関係か、こだわりか、感覚過敏か。自分の苦手なポイントを可視化することで、環境調整（例：イヤーマフを使う、マニュアルを用意してもらう等）の相談がしやすくなります。
+
+        <button onclick="toggleModal()" style="width: 100%; margin-top: 20px; padding: 10px; background: #6a1b9a; color: white; border: none; border-radius: 5px; cursor: pointer;">閉じる</button>
+    </div>
+</div>
+
+<script>
+    const childQuestions = [
+        "視線を合わせようとしない、または合わせ方が不自然だった",
+        "一人遊びを好み、集団に入ろうとしなかった",
+        "言葉の遅れや、おうむ返し（エコラリア）があった",
+        "特定の物（ミニカーの車輪、ロゴ等）への強いこだわりがあった",
+        "急な予定変更でパニックになったり、強く嫌がったりした",
+        "ごっこ遊びや「ふり」をすることが少なかった"
+    ];
+
+    const currentQuestions = [
+        "相手の表情や場の空気を読むのが苦手だと感じる",
+        "遠回しな言い方や、皮肉・冗談が通じにくい",
+        "自分の興味があることばかり一方的に話してしまう",
+        "手順やルーチンが決まっていないと不安になる",
+        "音、光、肌触り、匂いなどに過敏で、疲れやすい",
+        "細かい部分に気づくが、全体のまとめ役などは苦手"
+    ];
+
+    function createTable(questions, containerId, namePrefix) {
+        const tbody = document.getElementById(containerId);
+        questions.forEach((q, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="question-text">${q}</td>
+                <td class="radio-cell"><input type="radio" name="${namePrefix}${i}" value="0" checked></td>
+                <td class="radio-cell"><input type="radio" name="${namePrefix}${i}" value="1"></td>
+                <td class="radio-cell"><input type="radio" name="${namePrefix}${i}" value="2"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    createTable(childQuestions, 'childhoodTable', 'c');
+    createTable(currentQuestions, 'currentTable', 'n');
+
+    function calculate() {
+        let cTotal = 0, nTotal = 0;
+        for(let i=0; i<6; i++) {
+            cTotal += parseInt(document.querySelector(`input[name="c${i}"]:checked`).value);
+            nTotal += parseInt(document.querySelector(`input[name="n${i}"]:checked`).value);
+        }
+        document.getElementById('childScore').innerText = cTotal;
+        document.getElementById('currentScore').innerText = nTotal;
+    }
+
+    function toggleModal() {
+        const m = document.getElementById('infoModal');
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>

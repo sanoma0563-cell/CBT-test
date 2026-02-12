@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演習2：持続性抑うつの定式化</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-height: 550px; display: flex; flex-direction: column; }
+        h1 { font-size: 20px; text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-top: 20px; }
+        .msg { font-size: 17px; margin-bottom: 15px; animation: fadeIn 0.4s ease; }
+        .speaker-label { font-weight: bold; font-size: 13px; margin-bottom: 5px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .label-counselor { background: #e3f2fd; color: #1976d2; }
+        .label-client { background: #fff3e0; color: #e65100; }
+        .label-narration { background: #f5f5f5; color: #616161; border: 1px solid #ddd; }
+        .nav-btns { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        .next-btn { background: #4a6cf7; color: white; flex-grow: 2; }
+        .prev-btn { background: #ced4da; color: #495057; flex-grow: 1; }
+        .options-grid { display: grid; gap: 12px; margin-top: 10px; }
+        .opt-btn { background: #fff; border: 2px solid #4a6cf7; color: #4a6cf7; text-align: left; line-height: 1.4; padding: 15px; }
+        .opt-btn:hover { background: #f0f4ff; border-color: #2c3e50; }
+        .abc-box { background: #e6f7ff; border: 1px solid #91d5ff; padding: 15px; border-radius: 8px; font-size: 14px; margin: 10px 0; }
+        .feedback-bad { color: #d32f2f; background: #fff1f0; padding: 10px; border-radius: 5px; border: 1px solid #ffa39e; margin-top: 10px; font-size: 14px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>演習2：持続性抑うつのケースフォーミュレーション</h1>
+    <div id="display-area"></div>
+    <div class="nav-btns" id="nav-btns">
+        <button id="prev" class="prev-btn" onclick="goPrev()">戻る</button>
+        <button id="next" class="next-btn" onclick="goNext()">スタート</button>
+    </div>
+</div>
+<script>
+    const story = [
+        { id: 0, type: "narration", text: "ケースBさん。10年以上「意欲が湧かない」状態が続いています。性格の問題だと思い込み、絶望しています。" },
+        { id: 1, type: "client", text: "「先生、私はずっとこうなんです。何をやっても無駄だと思って動けなくなります。」" },
+        { id: 2, type: "choice", q: "関係構築の選択：", options: [
+            { text: "「性格のせいではありません。まずは活動記録をつけてみませんか？」", next: 3 },
+            { text: "「お一人で抱えてこられたのですね。動けない時、何が起きているか一緒に解き明かしませんか？」", next: 5 }
+        ]},
+        { id: 3, type: "client", text: "「活動記録…前もやってダメでした。先生も結局、行動を強いるんですね。」" },
+        { id: 4, type: "narration", text: "【バッドエンド】安易な提案は「できない自分」を再確認させる落とし穴になります。", isBad: true },
+        { id: 5, type: "client", text: "「解き明かす…？ 性格の問題じゃないなら知りたいです。」" },
+        { id: 6, type: "choice", q: "維持要因の分析：", options: [
+            { text: "「動かないことで『失敗の恐怖』から守られている面はありませんか？」", next: 9 },
+            { text: "「ポジティブに考えようとしたことはありますか？」", next: 7 }
+        ]},
+        { id: 7, type: "client", text: "「それができれば苦労しません…（また自分を責めてしまいました）」" },
+        { id: 8, type: "narration", text: "【バッドエンド】論理的な説得は、長年の自己否定感の前では逆効果です。", isBad: true },
+        { id: 9, type: "client", text: "「あぁ…。動かなければ傷つきません。でもそのせいで孤独で死にたくなります。」" },
+        { id: 10, type: "choice", q: "構造の共有：", options: [
+            { text: "「『何もしない』ことで守られるが、喜びも失われる。このループを整理しましょう。」", next: 11 },
+            { text: "「行動しないから社会に取り残されるんです。外に出る目標を立てましょう。」", next: 13 }
+        ]},
+        { id: 11, type: "client", text: "「自分を守るための行動が、自分を閉じ込める檻になっていたんですね。」" },
+        { id: 12, type: "narration", text: "【定式化の共有】客観的な構造として理解し、共同課題とする土台ができました。", next: 15 },
+        { id: 13, type: "client", text: "「わかってます！でも動けないんです！先生にはわからない！」" },
+        { id: 14, type: "narration", text: "【バッドエンド】デメリットの強調は「理解されていない」という孤立を生みます。", isBad: true },
+        { id: 15, type: "abc", a: "「どうせ無駄」という思考", b: "活動停止・引きこもり", c: "【短期】失敗の回避、【長期】自己効力感の低下" },
+        { id: 16, type: "choice", q: "介入の提案：", options: [
+            { text: "「明日からハローワークへ行きましょう。」", next: 17 },
+            { text: "「思考が邪魔しても『1分だけ窓を開ける』実験をしてみませんか？」", next: 19 }
+        ]},
+        { id: 17, type: "client", text: "「ハードルが高すぎて吐き気がします…」" },
+        { id: 18, type: "narration", text: "【バッドエンド】準備状態を無視した高すぎる目標は回避を強めます。", isBad: true },
+        { id: 19, type: "client", text: "「1分だけなら…。檻から出る練習、やってみます。」" },
+        { id: 20, type: "choice", q: "【ファイナル】今後の指針：", options: [
+            { text: "「動けなくなってもこの図に戻りましょう。仕組みの問題だと思い出してください。」", next: 21 },
+            { text: "「二度と抑うつに戻らないよう、厳しく律してください。」", next: 23 }
+        ]},
+        { id: 21, type: "client", text: "「仕組みの問題だと思えると楽です。一緒に図を更新していきたいです。」" },
+        { id: 22, type: "narration", text: "【演習2完了】共同作業者としての信頼を得ました。次は社交不安症の演習へ進みましょう。", isFinal: true },
+        { id: 23, type: "client", text: "「厳しく…もう疲れました。」" },
+        { id: 24, type: "narration", text: "【バッドエンド】「厳しさ」は自己否定を強め、維持要因を強化してしまいます。", isBad: true }
+    ];
+
+    let currentId = 0;
+
+    function render() {
+        const display = document.getElementById('display-area');
+        const btns = document.getElementById('nav-btns');
+        const nextBtn = document.getElementById('next');
+        const item = story.find(s => s.id === currentId);
+        
+        display.innerHTML = "";
+
+        if (item.type === "choice") {
+            btns.style.display = "none";
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-narration">選択</span><br>${item.q}</div>`;
+            const grid = document.createElement('div');
+            grid.className = "options-grid";
+            item.options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "opt-btn";
+                b.innerText = opt.text;
+                b.onclick = () => { currentId = opt.next; btns.style.display = "flex"; render(); };
+                grid.appendChild(b);
+            });
+            display.appendChild(grid);
+        } else if (item.type === "abc") {
+            display.innerHTML = `<div class="abc-box"><strong>【定式化】</strong><br>A: ${item.a}<br>B: ${item.b}<br>C: ${item.c}</div>`;
+        } else {
+            const labelMap = { counselor: "カウンセラー", client: "Bさん", narration: "ナレーション" };
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-${item.type}">${labelMap[item.type]}</span><br>${item.text}</div>`;
+            
+            if (item.isBad) {
+                display.innerHTML += `<div class="feedback-bad">やり直しが必要です。</div>`;
+                nextBtn.innerText = "最初からやり直す";
+            } else if (item.isFinal) {
+                nextBtn.innerText = "演習3（社交不安）へ進む";
+            } else {
+                nextBtn.innerText = currentId === 0 ? "スタート" : "つぎへ";
+            }
+        }
+        document.getElementById('prev').disabled = currentId === 0 || item.isBad;
+    }
+
+    function goNext() {
+        const item = story.find(s => s.id === currentId);
+        
+        // 【修正ポイント】完了時に次のファイルへ飛ばす
+        if (item.isFinal) {
+            window.location.href = "caseformreion_3.html"; 
+            return;
+        }
+
+        if (item.isBad) { 
+            currentId = 0; 
+        } else if (item.next !== undefined) { 
+            currentId = item.next; 
+        } else { 
+            currentId++; 
+        }
+        render();
+    }
+
+    function goPrev() { 
+        if (currentId > 0) { 
+            currentId--; 
+            const prevItem = story.find(s => s.id === currentId);
+            if (prevItem && prevItem.type === "choice") currentId--; 
+            render(); 
+        } 
+    }
+
+    render();
+</script>
+</body>
+</html>

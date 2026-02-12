@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCI（言語理解）集中トレーニング・ワーク</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fdfcf0;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #d35400;
+            border-bottom: 2px solid #edbb99;
+            padding-bottom: 10px;
+        }
+        .intro {
+            background-color: #fff5e6;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            border-left: 5px solid #d35400;
+        }
+        .category {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        .category-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #e67e22;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .category-title::before {
+            content: '●';
+            margin-right: 10px;
+            font-size: 12px;
+        }
+        .question-block {
+            margin-bottom: 20px;
+        }
+        .q-text {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .a-input {
+            width: 100%;
+            min-height: 60px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            outline: none;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        .a-input:focus {
+            border-color: #e67e22;
+            background-color: #fffef0;
+        }
+        .hint-btn {
+            font-size: 11px;
+            background: #ddd;
+            border: none;
+            padding: 2px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+        .hint-content {
+            display: none;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            background: #eee;
+            padding: 8px;
+        }
+        .no-print { text-align: center; margin-top: 30px; }
+        .print-btn {
+            background-color: #d35400;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        @media print {
+            .no-print, .hint-btn { display: none !important; }
+            body { background: white; }
+            .container { box-shadow: none; width: 100%; max-width: none; }
+            .a-input { border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>VCI：言語理解 強化ワーク</h1>
+
+    <div class="intro">
+        <strong>VCIのポイント：</strong> 語彙の豊富さだけでなく、物事の「本質」を言葉で説明する力を鍛えます。<br>
+        答えが一つとは限りません。できるだけ詳しく、論理的に記述してみましょう。
+    </div>
+
+    <div class="category">
+        <div class="category-title">類似：共通点は何ですか？</div>
+        <div class="question-block">
+            <span class="q-text">1. 「リンゴ」と「バナナ」</span>
+            <div class="a-input" contenteditable="true"></div>
+            <button class="hint-btn" onclick="toggleHint(this)">ヒントを表示</button>
+            <div class="hint-content">「食べ物」というより「果物」と答える方が抽象度が高く評価されます。</div>
+        </div>
+        <div class="question-block">
+            <span class="q-text">2. 「自由」と「正義」</span>
+            <div class="a-input" contenteditable="true"></div>
+            <button class="hint-btn" onclick="toggleHint(this)">ヒントを表示</button>
+            <div class="hint-content">形のない概念です。「権利」「価値観」「抽象的な理念」などがキーワードになります。</div>
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-title">単語：言葉の意味を説明してください</div>
+        <div class="question-block">
+            <span class="q-text">3. 「勇気」とはどういう意味ですか？</span>
+            <div class="a-input" contenteditable="true"></div>
+            <button class="hint-btn" onclick="toggleHint(this)">ヒントを表示</button>
+            <div class="hint-content">「怖くないこと」という否定形より、「困難に立ち向かう心」のような能動的な説明が好まれます。</div>
+        </div>
+        <div class="question-block">
+            <span class="q-text">4. 「進化」とはどういう意味ですか？</span>
+            <div class="a-input" contenteditable="true"></div>
+            <button class="hint-btn" onclick="toggleHint(this)">ヒントを表示</button>
+            <div class="hint-content">「変わること」だけでなく「段階的に、あるいは環境に適応して良くなること」を含めると深くなります。</div>
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-title">理解：なぜそうする必要があるのですか？</div>
+        <div class="question-block">
+            <span class="q-text">5. なぜ「法律」というものが必要なのですか？</span>
+            <div class="a-input" contenteditable="true"></div>
+            <button class="hint-btn" onclick="toggleHint(this)">ヒントを表示</button>
+            <div class="hint-content">「捕まるから」という個人的理由ではなく「社会の秩序を守るため」「権利を保護するため」という公的な視点が重要です。</div>
+        </div>
+    </div>
+
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">このワークシートを印刷・保存</button>
+    </div>
+</div>
+
+<script>
+    function toggleHint(btn) {
+        const content = btn.nextElementSibling;
+        content.style.display = (content.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>

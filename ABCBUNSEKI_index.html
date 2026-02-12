@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC分析（機能分析）ワークシート</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f7f4;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #2d6a4f;
+            border-bottom: 3px solid #b7e4c7;
+            padding-bottom: 10px;
+        }
+
+        /* 活用のポイントボタン */
+        .info-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background-color: #40916c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .intro {
+            background-color: #d8f3dc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            border-left: 5px solid #2d6a4f;
+        }
+
+        .abc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .abc-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            color: white;
+            border-radius: 5px 5px 0 0;
+        }
+        .bg-a { background-color: #52b788; } /* Antecedent */
+        .bg-b { background-color: #40916c; } /* Behavior */
+        .bg-c { background-color: #2d6a4f; } /* Consequence */
+
+        .abc-box {
+            border: 2px solid #eee;
+            min-height: 100px;
+            padding: 10px;
+            background-color: #fff;
+            font-size: 14px;
+        }
+
+        .case-study {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+
+        .q-label {
+            display: inline-block;
+            background: #2d6a4f;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .input-area {
+            width: 100%;
+            border: 1px dashed #999;
+            min-height: 60px;
+            padding: 8px;
+            margin-top: 5px;
+            outline: none;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 25px;
+            width: 85%;
+            max-width: 650px;
+            border-radius: 12px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .point-title { font-weight: bold; color: #1b4332; display: block; margin-top: 15px; }
+
+        @media print {
+            .no-print, .info-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; }
+            .input-area { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="info-btn no-print" onclick="toggleModal()">?</button>
+    <h1>ABC分析（機能分析）ワークシート</h1>
+
+    <div class="intro">
+        <strong>ABC分析とは：</strong> 行動（B）を、その前のきっかけ（A）と、その後の結果（C）に分けて分析します。
+        「なぜその行動をしてしまうのか？」という機能（メリット）を見つけるためのツールです。
+    </div>
+
+    <h2 style="color: #2d6a4f; font-size: 18px;">【STEP 1】ケーススタディで練習</h2>
+    
+    <div class="case-study">
+        <span class="q-label">ケース1：スマホがやめられない</span>
+        <p style="font-size: 14px; margin-bottom: 15px;">
+            「夕食後、ふと寂しさを感じた（A）。そこでSNSを開いて1時間眺めた（B）。その結果、一時的に寂しさが紛れた（C）。」
+        </p>
+        <div class="abc-grid">
+            <div>
+                <div class="abc-header bg-a">A：先行条件</div>
+                <div class="abc-box">夕食後、寂しさを感じた</div>
+            </div>
+            <div>
+                <div class="abc-header bg-b">B：行動</div>
+                <div class="abc-box">SNSを1時間見た</div>
+            </div>
+            <div>
+                <div class="abc-header bg-c">C：結果</div>
+                <div class="abc-box">寂しさが紛れた</div>
+            </div>
+        </div>
+        <p style="font-size: 13px; color: #666;">
+            <strong>解説：</strong> この行動の「機能」は「不快な感情（寂しさ）の回避」です。結果（C）でメリットを得ているため、この行動（B）は今後も繰り返されやすくなります。
+        </p>
+    </div>
+
+    <div class="case-study">
+        <span class="q-label">ケース2：あなたの分析（練習問題）</span>
+        <p style="font-size: 14px;"><strong>課題：</strong>「仕事でミスをして上司に叱られた後（A）、甘いお菓子をたくさん食べた（B）。」<br>この場合の結果（C）には何が入るでしょうか？予想して書いてみましょう。</p>
+        <div class="abc-grid">
+            <div>
+                <div class="abc-header bg-a">A：先行条件</div>
+                <div class="abc-box">ミスして叱られた</div>
+            </div>
+            <div>
+                <div class="abc-header bg-b">B：行動</div>
+                <div class="abc-box">お菓子をドカ食いした</div>
+            </div>
+            <div>
+                <div class="abc-header bg-c">C：結果</div>
+                <div class="input-area" contenteditable="true" placeholder="ここに記入"></div>
+            </div>
+        </div>
+    </div>
+
+    <h2 style="color: #2d6a4f; font-size: 18px; margin-top: 40px;">【STEP 2】自分の行動を分析する</h2>
+    <div class="abc-grid">
+        <div class="abc-header bg-a">A：先行条件（きっかけ）</div>
+        <div class="abc-header bg-b">B：行動（やったこと）</div>
+        <div class="abc-header bg-c">C：結果（どうなったか）</div>
+        
+        <div class="input-area" contenteditable="true" placeholder="いつ、どこで、どんな気分？"></div>
+        <div class="input-area" contenteditable="true" placeholder="具体的に何をした？"></div>
+        <div class="input-area" contenteditable="true" placeholder="直後の気分や周囲の反応は？"></div>
+
+        <div class="input-area" contenteditable="true"></div>
+        <div class="input-area" contenteditable="true"></div>
+        <div class="input-area" contenteditable="true"></div>
+    </div>
+
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="padding: 12px 30px; background: #2d6a4f; color: white; border: none; border-radius: 6px; cursor: pointer;">分析シートを保存・印刷</button>
+    </div>
+</div>
+
+<div id="infoModal" class="modal" onclick="toggleModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color: #2d6a4f; margin-top: 0;">ABC分析 活用のポイント</h2>
+        
+        <span class="point-title">1. C（結果）に注目する</span>
+        人間は、その行動の直後に「良いこと（報酬）」が起きるか、「嫌なことがなくなる（回避）」ときに、その行動を繰り返します。これを行動の「機能」と呼びます。
+        
+        <span class="point-title">2. 行動を責めない</span>
+        「ついやっちゃう悪い癖」も、ABCで分析すると「その時の自分にとってはメリットがあった（寂しさを紛らわせる等）」ことが分かります。自分を責めるのではなく、メカニズムを理解しましょう。
+
+        <span class="point-title">3. 対策を立てる</span>
+        原因が分かれば、対策を立てやすくなります。
+        <ul>
+            <li><strong>Aへの対策：</strong> きっかけを減らす（スマホを目に入らない所に置くなど）</li>
+            <li><strong>Bへの対策：</strong> 代わりの行動を作る（寂しい時は誰かにLINEするなど）</li>
+            <li><strong>Cへの対策：</strong> 望ましい行動をした時に自分を褒める（ご褒美など）</li>
+        </ul>
+
+        <button onclick="toggleModal()" style="width: 100%; margin-top: 20px; padding: 10px; background: #2d6a4f; color: white; border: none; border-radius: 5px; cursor: pointer;">閉じる</button>
+    </div>
+</div>
+
+<script>
+    function toggleModal() {
+        const m = document.getElementById('infoModal');
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>

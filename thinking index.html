@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考え方のクセ診断＆対策アドバイス</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f7fa; margin: 0; padding: 15px; color: #333; }
+        .card { background: #fff; border-radius: 16px; padding: 24px; max-width: 500px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { font-size: 1.2rem; margin-top: 0; color: #4a6cf7; text-align: center; }
+        .progress { font-size: 0.9rem; color: #666; margin-bottom: 10px; text-align: center; }
+        .question-text { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; min-height: 60px; line-height: 1.5; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .btn { width: 100%; padding: 14px; font-size: 1rem; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn:active { background: #e9eef5; transform: scale(0.98); }
+        .btn-primary { background: #4a6cf7; color: #fff; border: none; text-align: center; margin-top: 20px; font-weight: bold; width: 100%; cursor: pointer; border-radius: 10px; padding: 14px; }
+        
+        /* 「次に進む」ボタン専用（オレンジ系で目立たせる） */
+        .btn-next { background: #f59e0b; color: #fff; border: none; text-align: center; margin-top: 10px; font-weight: bold; width: 100%; cursor: pointer; border-radius: 10px; padding: 14px; text-decoration: none; display: block; }
+        .btn-next:hover { background: #d97706; }
+
+        #result-area { display: none; }
+        canvas { max-width: 100%; margin: 20px 0; }
+        
+        .advice-section { margin-top: 25px; padding: 20px; background: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; text-align: left; }
+        .advice-title { color: #1e40af; font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        .feature-box { font-size: 0.95rem; color: #1e3a8a; background: #fff; padding: 12px; border-radius: 8px; border-left: 4px solid #4a6cf7; margin-bottom: 15px; min-height: 60px; }
+        .advice-content { font-size: 0.95rem; line-height: 1.6; color: #1e3a8a; display: none; background: #fff; padding: 12px; border-radius: 8px; border: 1px dashed #4a6cf7; margin-top: 10px; }
+        
+        .advice-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-mini { 
+            padding: 12px 5px; 
+            font-size: 0.85rem; 
+            text-align: center; 
+            background: #fff; 
+            border: 2px solid #4a6cf7; 
+            color: #4a6cf7; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-mini.active { background: #4a6cf7; color: #fff; }
+
+        .calc-info { font-size: 0.8rem; color: #777; margin-top: 20px; text-align: left; border-top: 1px solid #eee; padding-top: 10px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="quiz-area">
+        <div class="progress" id="progress">問題 1 / 19</div>
+        <div class="question-text" id="q-text">読み込み中...</div>
+        <div class="options">
+            <button class="btn" onclick="next(4)">4：当てはまる</button>
+            <button class="btn" onclick="next(3)">3：やや当てはまる</button>
+            <button class="btn" onclick="next(2)">2：あまり当てはまらない</button>
+            <button class="btn" onclick="next(1)">1：全く当てはまらない</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2>診断結果</h2>
+        <canvas id="radarChart"></canvas>
+        
+        <div id="advice-container" class="advice-section">
+            <div class="advice-title">💡 クセの特徴と対策</div>
+            <div id="category-name" style="font-weight: bold; font-size: 1.1rem; color: #4a6cf7; margin-bottom: 8px;"></div>
+            <div id="feature-text" class="feature-box">下のボタンを押して解説を確認してください。</div>
+            <div id="advice-text" class="advice-content"></div>
+
+            <button id="show-advice-btn" class="btn-primary" onclick="toggleAdvice()">対策を表示</button>
+
+            <div class="advice-buttons">
+                <button class="btn-mini" id="btn-恣意的推論" onclick="showCategoryInfo('恣意的推論')">恣意的推論</button>
+                <button class="btn-mini" id="btn-選択的注目" onclick="showCategoryInfo('選択的注目')">選択的注目</button>
+                <button class="btn-mini" id="btn-過度の一般化" onclick="showCategoryInfo('過度の一般化')">過度の一般化</button>
+                <button class="btn-mini" id="btn-拡大解釈と過小評価" onclick="showCategoryInfo('拡大解釈と過小評価')">拡大解釈・過小</button>
+                <button class="btn-mini" id="btn-個人化" onclick="showCategoryInfo('個人化')">個人化</button>
+                <button class="btn-mini" id="btn-全か無か思考" onclick="showCategoryInfo('全か無か思考')">全か無か思考</button>
+            </div>
+        </div>
+
+        <div class="calc-info" id="calc-info"></div>
+
+        <a href="thinking index ver1.html" class="btn-next">次のページへ進む</a>
+        <button class="btn-primary" style="background: #666; margin-top: 10px;" onclick="location.reload()">診断をやり直す</button>
+    </div>
+</div>
+
+<script>
+const questions = [
+    {n:1,  q:"証拠もないのに、自分に不利な結論を引き出すことがある。", cat:"恣意的推論"},
+    {n:2,  q:"何か友達とトラブルがあると「友達が私を嫌いになった」と感じてしまうほうである。", cat:"過度の一般化"},
+    {n:3,  q:"根拠もないのに、悲観的な結論を出してしまうことがある。", cat:"恣意的推論"},
+    {n:4,  q:"ちょっとした小さな失敗をしても、完全な失敗だと感じるほうである。", cat:"過度の一般化"}, 
+    {n:5,  q:"自分に関係がないとわかっていることでも、自分に関連付けて考えるほうである。", cat:"個人化"},
+    {n:6,  q:"他人の成功や長所は過大に考え、他人の失敗や短所は過小評価する方である。", cat:"拡大解釈と過小評価"},
+    {n:7,  q:"物事は完璧か、悲惨かのどちらかしかない、といった具合に極端に考える方である。", cat:"全か無か思考"},
+    {n:8,  q:"自分に不利なことは、些細なことでも気になるほうである。", cat:"選択的注目"},
+    {n:9,  q:"何か良い出来事があっても、それを無視してしまっていることがある。", cat:"選択的注目"},
+    {n:10, q:"何か悪いことが一度自分に起こると、何度も繰り返して起こるように感じるほうである。", cat:"過度の一般化"},
+    {n:11, q:"たったひとつでも良くないことがあると、世の中すべてそうだと感じてしまう。", cat:"過度の一般化"},
+    {n:12, q:"わずかな経験から、広範囲のことを恣意的に結論してしまうほうである。", cat:"過度の一般化"},
+    {n:13, q:"物事を極端に白か黒かのどちらかに分けて考えるほうである。", cat:"全か無か思考"},
+    {n:14, q:"根拠もないのに、人が私に悪く反応したと早合点してしまうことがある。", cat:"恣意的推論"},
+    {n:15, q:"自分の失敗や短所は過大に考え、自分の成功や長所は過小評価するほうである。", cat:"拡大解釈と過小評価"},
+    {n:16, q:"ちょっとした小さな成功をすると、完全な成功だと感じるほうである。", cat:"過度の一般化"},
+    {n:17, q:"たった一つの良くないことにこだわってしまい、そればかりクヨクヨと考えるほうである。", cat:"選択的注目"},
+    {n:18, q:"何か悪いこと、自分のせいであるかのように考えてしまう。", cat:"個人化"},
+    {n:19, q:"根拠もないのに、事態はこれから確実に悪くなる、と考えることがある。", cat:"恣意的推論"}
+];
+
+const traitData = {
+    "恣意的推論": { feature: "【特徴】根拠がないのに自分に不利な思い込みをすること。", advice: "【対策】思い込みを裏付ける証拠を探し、別の可能性を考えましょう。" },
+    "選択的注目": { feature: "【特徴】良いことを無視し、1つの悪いことだけに執着するクセです。", advice: "【対策】意識的に「良かったこと」を言葉にする練習をしましょう。" },
+    "過度の一般化": { feature: "【特徴】1度の失敗を「いつも」「すべてダメ」と広げて捉えるクセです。", advice: "【対策】「今回はこうだった」と事実をその場限りに限定しましょう。" },
+    "拡大解釈と過小評価": { feature: "【特徴】自分の失敗を巨大化させ、長所を極端に小さく見積もります。", advice: "【対策】他人の目線になって、自分を公平に評価し直してみましょう。" },
+    "個人化": { feature: "【特徴】他人の機嫌や悪い出来事を「自分のせいだ」と背負い込みます。", advice: "【対策】自分の責任と、相手や環境の責任を切り分けましょう。" },
+    "全か無か思考": { feature: "【特徴】完璧（100点）か失敗（0点）かの二択。中間の評価ができません。", advice: "【対策】「今日は60％できた」と数字で評価し、グレーを認めましょう。" }
+};
+
+let currentIndex = 0;
+const rawScores = { "恣意的推論":0, "選択的注目":0, "過度の一般化":0, "拡大解釈と過小評価":0, "個人化":0, "全か無か思考":0 };
+
+function loadQuestion() {
+    document.getElementById("progress").innerText = `問題 ${currentIndex + 1} / ${questions.length}`;
+    document.getElementById("q-text").innerText = questions[currentIndex].q;
+}
+
+function next(point) {
+    rawScores[questions[currentIndex].cat] += point;
+    currentIndex++;
+    if (currentIndex < questions.length) {
+        loadQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById("quiz-area").style.display = "none";
+    document.getElementById("result-area").style.display = "block";
+
+    const finalScores = {
+        "恣意的推論": rawScores["恣意的推論"] * 1.5,
+        "選択的注目": rawScores["選択的注目"] * 2,
+        "過度の一般化": rawScores["過度の一般化"], 
+        "拡大解釈と過小評価": rawScores["拡大解釈と過小評価"] * 3,
+        "個人化": rawScores["個人化"] * 3,
+        "全か無か思考": rawScores["全か無か思考"] * 3
+    };
+
+    let maxCat = Object.keys(finalScores).reduce((a, b) => finalScores[a] > finalScores[b] ? a : b);
+    showCategoryInfo(maxCat);
+
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['恣意的推論', '選択的注目', '過度の一般化', '拡大解釈と過小評価', '個人化', '全か無か思考'],
+            datasets: [{
+                data: [finalScores["恣意的推論"], finalScores["選択的注目"], finalScores["過度の一般化"], finalScores["拡大解釈と過小評価"], finalScores["個人化"], finalScores["全か無か思考"]],
+                backgroundColor: 'rgba(74, 108, 247, 0.2)',
+                borderColor: 'rgba(42, 67, 184, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: { scales: { r: { min: 0, max: 25, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } }
+    });
+}
+
+function showCategoryInfo(cat) {
+    document.querySelectorAll('.btn-mini').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + cat).classList.add('active');
+    document.getElementById("category-name").innerText = cat;
+    document.getElementById("feature-text").innerText = traitData[cat].feature;
+    document.getElementById("advice-text").innerText = traitData[cat].advice;
+    document.getElementById("advice-text").style.display = "none";
+}
+
+function toggleAdvice() {
+    const el = document.getElementById("advice-text");
+    el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+loadQuestion();
+</script>
+</body>
+</html>

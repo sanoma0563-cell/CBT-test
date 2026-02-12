@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演習3：社交不安症の定式化</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-height: 550px; display: flex; flex-direction: column; }
+        h1 { font-size: 20px; text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-top: 20px; }
+        .msg { font-size: 17px; margin-bottom: 15px; animation: fadeIn 0.4s ease; }
+        .speaker-label { font-weight: bold; font-size: 13px; margin-bottom: 5px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .label-counselor { background: #e3f2fd; color: #1976d2; }
+        .label-client { background: #fff3e0; color: #e65100; }
+        .label-narration { background: #f5f5f5; color: #616161; border: 1px solid #ddd; }
+        .nav-btns { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        .next-btn { background: #4a6cf7; color: white; flex-grow: 2; }
+        .prev-btn { background: #ced4da; color: #495057; flex-grow: 1; }
+        .options-grid { display: grid; gap: 12px; margin-top: 10px; }
+        .opt-btn { background: #fff; border: 2px solid #4a6cf7; color: #4a6cf7; text-align: left; line-height: 1.4; padding: 15px; }
+        .opt-btn:hover { background: #f0f4ff; border-color: #2c3e50; }
+        .abc-box { background: #f6ffed; border: 1px solid #b7eb8f; padding: 15px; border-radius: 8px; font-size: 14px; margin: 10px 0; }
+        .feedback-bad { color: #d32f2f; background: #fff1f0; padding: 10px; border-radius: 5px; border: 1px solid #ffa39e; margin-top: 10px; font-size: 14px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>演習3：社交不安症の定式化</h1>
+    <div id="display-area"></div>
+    <div class="nav-btns" id="nav-btns">
+        <button id="prev" class="prev-btn" onclick="goPrev()">戻る</button>
+        <button id="next" class="next-btn" onclick="goNext()">スタート</button>
+    </div>
+</div>
+<script>
+    const story = [
+        { id: 0, type: "narration", text: "ケースCさん。会議や人前での食事が苦痛です。「変な人だと思われる」という恐怖を抱えています。" },
+        { id: 1, type: "client", text: "「会議の前は台本を必死に読み込みます。目立たないように後ろに座りますが、それでも笑われている気がして…。」" },
+        { id: 2, type: "choice", q: "アセスメントの選択：", options: [
+            { text: "「リラックス法を練習して、自信を持って前に座ってみませんか？」", next: 3 },
+            { text: "「『後ろに座る』などの対策が、長期的にはどう影響しているか一緒に考えましょう。」", next: 5 }
+        ]},
+        { id: 3, type: "client", text: "「前に座るなんて死ぬより怖いです。先生もわかってくれない。」" },
+        { id: 4, type: "narration", text: "【バッドエンド】安易な励ましは拒絶を招きます。回避行動の機能に注目しましょう。", isBad: true },
+        { id: 5, type: "client", text: "「対策の影響…。後ろに座れば安心しますが、次はもっと怖くなる気がします。」" },
+        { id: 6, type: "choice", q: "回避学習の確認：", options: [
+            { text: "「避けることで一時的には安心しますか？ 逆に不安が強まりますか？」", next: 9 },
+            { text: "「周りの人は案外見ていないものですよ。」", next: 7 }
+        ]},
+        { id: 7, type: "client", text: "「理屈ではわかっているんです。でも自分の震えに集中して逸らせないんです…。」" },
+        { id: 8, type: "narration", text: "【バッドエンド】論理적説得は「自己注目」の前では効果が薄いです。", isBad: true },
+        { id: 9, type: "client", text: "「避けるとホッとしますが、自己嫌悪が強まってますます怖くなります。」" },
+        { id: 10, type: "choice", q: "『安全確保行動』の共有：", options: [
+            { text: "「台本の準備などの『対策』が、恐怖を強化している可能性がありますね？」", next: 11 },
+            { text: "「対策をやめないから治らないんです。明日から台本なしで出てください。」", next: 13 }
+        ]},
+        { id: 11, type: "client", text: "「対策が逆に自分を弱くしていたんですね。納得がいきます。」" },
+        { id: 12, type: "narration", text: "【定式化の共有】不安を消すのではなく仕組みを変えることを課題として認識しました。", next: 15 },
+        { id: 13, type: "client", text: "「無防備すぎて無理です！もうここには来られません。」" },
+        { id: 14, type: "narration", text: "【バッドエンド】安全確保行動を急に奪うと離脱を招きます。", isBad: true },
+        { id: 15, type: "abc", a: "注目される場面・「変に思われる」予測", b: "台本の準備・後ろの席・視線を逸らす", c: "【短期】一時的安心、【長期】対人場面＝危険という学習の維持" },
+        { id: 16, type: "choice", q: "最初のステップ：", options: [
+            { text: "「会議で『台本を一行だけ見ずに言う』実験をしてみませんか？」", next: 19 },
+            { text: "「毎日10人の知らない人に声をかけてください。」", next: 17 }
+        ]},
+        { id: 17, type: "client", text: "「一生無理な気がしてきました…」" },
+        { id: 18, type: "narration", text: "【バッドエンド】ハードル設定を誤ると、新たな回避を生みます。", isBad: true },
+        { id: 19, type: "client", text: "「一行だけなら…。周りの顔を見る余裕ができるかもしれません。」" },
+        { id: 20, type: "choice", q: "【ファイナル】今後の指針：", options: [
+            { text: "「不安があっても『自分のやりたい関わり』を選択できることを目指しましょう。」", next: 21 },
+            { text: "「完璧に堂々と話せるまで特訓を続けましょう。」", next: 23 }
+        ]},
+        { id: 21, type: "client", text: "「不安があってもいい。少しずつ檻から外に出たいです。」" },
+        { id: 22, type: "narration", text: "【全演習修了】お疲れ様でした。定式化のスキルを現場で活かしていきましょう。", isFinal: true },
+        { id: 23, type: "client", text: "「完璧なんて…苦しいです。」" },
+        { id: 24, type: "narration", text: "【バッドエンド】完璧を目指す設定は、社交不安を悪化させます。", isBad: true }
+    ];
+
+    let currentId = 0;
+
+    function render() {
+        const display = document.getElementById('display-area');
+        const btns = document.getElementById('nav-btns');
+        const nextBtn = document.getElementById('next');
+        const item = story.find(s => s.id === currentId);
+        
+        display.innerHTML = "";
+
+        if (item.type === "choice") {
+            btns.style.display = "none";
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-narration">選択</span><br>${item.q}</div>`;
+            const grid = document.createElement('div');
+            grid.className = "options-grid";
+            item.options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "opt-btn";
+                b.innerText = opt.text;
+                b.onclick = () => { currentId = opt.next; btns.style.display = "flex"; render(); };
+                grid.appendChild(b);
+            });
+            display.appendChild(grid);
+        } else if (item.type === "abc") {
+            display.innerHTML = `<div class="abc-box"><strong>【定式化】</strong><br>A: ${item.a}<br>B: ${item.b}<br>C: ${item.c}</div>`;
+        } else {
+            const labelMap = { counselor: "カウンセラー", client: "Cさん", narration: "ナレーション" };
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-${item.type}">${labelMap[item.type]}</span><br>${item.text}</div>`;
+            
+            if (item.isBad) {
+                display.innerHTML += `<div class="feedback-bad">やり直しが必要です。</div>`;
+                nextBtn.innerText = "スタートへ戻る";
+            } else if (item.isFinal) {
+                nextBtn.innerText = "次のステップへ";
+            } else {
+                nextBtn.innerText = currentId === 0 ? "スタート" : "つぎへ";
+            }
+        }
+        document.getElementById('prev').disabled = currentId === 0 || item.isBad;
+    }
+
+    // goNext関数を一つにまとめました
+    function goNext() {
+        const item = story.find(s => s.id === currentId);
+        
+        // 完了時に次のファイルへ移動
+        if (item.isFinal) {
+            window.location.href = "caseformreion_4.html"; 
+            return;
+        }
+
+        if (item.isBad) { 
+            currentId = 0; 
+        } else if (item.next !== undefined) { 
+            currentId = item.next; 
+        } else { 
+            currentId++; 
+        }
+        render();
+    }
+
+    function goPrev() { 
+        if (currentId > 0) { 
+            currentId--; 
+            const prevItem = story.find(s => s.id === currentId);
+            if (prevItem && prevItem.type === "choice") currentId--; 
+            render(); 
+        } 
+    }
+
+    render();
+</script>
+</body>
+</html>

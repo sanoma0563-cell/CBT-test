@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不安階層表＆心理教育ワーク</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #4a6cf7; color: white; padding: 15px; text-align: center; }
+        
+        /* 共通ボタン・コンテナ */
+        .card { background: white; max-width: 700px; margin: 20px auto; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-confirm { background: #10b981; color: white; border: none; padding: 15px 40px; border-radius: 35px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-next { background: #f59e0b; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; text-decoration: none; text-align: center; font-size: 1rem; }
+
+        /* ガイド表示 */
+        .guide-container { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .btn-guide { background: #6366f1; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        #guide-content { display: none; max-width: 600px; margin: 10px auto; text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; font-size: 0.85rem; }
+
+        /* ボードエリア */
+        .main-container { flex: 1; height: 60vh; position: relative; background: #fff; border-bottom: 2px solid #ddd; overflow: hidden; }
+        .horizontal-scale { position: absolute; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .scale-line { position: absolute; left: 0; width: 100%; border-top: 1px solid #e2e8f0; display: flex; align-items: center; }
+        .scale-line span { background: #f1f5f9; color: #64748b; font-size: 11px; padding: 2px 8px; font-weight: bold; border-radius: 0 10px 10px 0; }
+        #board { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; }
+
+        /* 付箋 */
+        .sticky-note { width: 140px; min-height: 65px; padding: 12px; background: #fef08a; border-radius: 4px; box-shadow: 2px 4px 10px rgba(0,0,0,0.15); position: absolute; cursor: grab; z-index: 10; font-size: 0.85rem; border-left: 5px solid #eab308; }
+        .text-content { outline: none; min-height: 40px; word-break: break-all; }
+        .sud-badge { display: block; margin-top: 6px; font-size: 0.75rem; font-weight: bold; color: #b45309; border-top: 1px solid #fde047; padding-top: 3px; }
+
+        /* 心理教育セクション */
+        #psycho-edu { display: none; }
+        .edu-section { margin-bottom: 25px; padding: 15px; border-radius: 10px; background: #f0f9ff; border-left: 5px solid #0ea5e9; }
+        .edu-title { font-weight: bold; font-size: 1.1rem; color: #0369a1; margin-bottom: 10px; display: flex; align-items: center; }
+        .edu-item { margin-bottom: 15px; padding-left: 10px; border-left: 2px solid #bae6fd; }
+        .edu-item b { color: #0c4a6e; }
+        .edu-list { list-style-type: none; padding-left: 15px; margin-top: 5px; font-size: 0.95rem; color: #334155; }
+        .edu-list li::before { content: "•"; color: #0ea5e9; font-weight: bold; display: inline-block; width: 1em; margin-left: -1em; }
+
+        #result-area { display: none; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        .sud-cell { font-weight: bold; color: #e11d48; width: 80px; text-align: center; background: #fff1f2; }
+    </style>
+</head>
+<body>
+
+<div id="board-screen">
+    <header><h1>不安階層表ワークボード</h1></header>
+    <div class="guide-container">
+        <button class="btn-guide" onclick="toggleGuide()">作成の手順を表示・非表示</button>
+        <div id="guide-content">
+            <div style="font-size:0.8rem; margin-bottom:10px;"><b>【手順】</b></div>
+            1.一番嫌なもの / 2.マシなもの / 3.両端の真ん中を選ぶ / 4. 0点と100点を決める / 5.真ん中より上か下か分ける / 6.二者択一で比較 / 7.グループで一番無理なもの / 8.一番マシなもの / 9.繰り返し / 10.点数確定
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="horizontal-scale" id="scaleGrid"></div>
+        <div id="board"></div>
+    </div>
+    <div style="text-align: center; padding: 20px; background: #f8fafc;">
+        <button class="btn-confirm" onclick="confirmHierarchy()">階層表を確定する</button>
+    </div>
+</div>
+
+<div id="result-area" class="card">
+    <h2>完成した不安階層表</h2>
+    <table>
+        <thead><tr><th class="sud-cell">SUD</th><th>状況・活動のステップ</th></tr></thead>
+        <tbody id="hierarchyTableBody"></tbody>
+    </table>
+    <button class="btn-next" onclick="showPsychoEdu()">心理教育①へ進む</button>
+</div>
+
+<div id="psycho-edu" class="card">
+    <h2 style="text-align: center; color: #4a6cf7;">心理教育①</h2>
+    <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">不安を感じたとき、私たちは心や体に特有の反応を示します。</p>
+
+    <div class="edu-section">
+        <div class="edu-title">1. 心理的・感情的な主観的反応</div>
+        <div class="edu-item">
+            <b>過剰な熟考・完璧主義（Overthinking）</b>
+            <ul class="edu-list">
+                <li>内容を何度も見直し、文字一つひとつを極端に気にする。</li>
+            </ul>
+        </div>
+        <div class="edu-item">
+            <b>拒絶・批判への恐怖</b>
+            <ul class="edu-list">
+                <li>無視されること、冷たい返信、否定的な評価への強い恐怖。</li>
+            </ul>
+        </div>
+        <div class="edu-item">
+            <b>ネガティブな螺旋</b>
+            <ul class="edu-list">
+                <li>すぐに返信が来ないと「何か悪いことをしたか」と不安になる。</li>
+            </ul>
+        </div>
+        <div class="edu-item">
+            <b>回避と強迫的チェック</b>
+            <ul class="edu-list">
+                <li>送るボタンが押せない、または何度もオンライン状態を確認してしまう。</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="edu-section" style="border-left-color: #f43f5e; background: #fff1f2;">
+        <div class="edu-title" style="color: #be123c;">2. 身体的な自律神経反応</div>
+        <ul class="edu-list">
+            <li><b>動悸・胸のドキドキ:</b> 心拍数が急上昇する。</li>
+            <li><b>冷や汗・手の震え:</b> 緊張による身体の震え。</li>
+            <li><b>息苦しさ:</b> 呼吸が浅くなる。</li>
+            <li><b>胃の不快感:</b> 腹痛や吐き気。</li>
+        </ul>
+    </div>
+
+    <div class="edu-section" style="border-left-color: #10b981; background: #ecfdf5;">
+        <div class="edu-title" style="color: #047857;">3. 回避行動</div>
+        <ul class="edu-list">
+            <li>避ける、よける、ひきこもる、後回しにするなど。</li>
+        </ul>
+    </div>
+
+    <button class="btn-next" style="background: #4a6cf7;" onclick="location.reload()">最初に戻る</button>
+</div>
+
+<script>
+    const board = document.getElementById('board');
+    const scaleGrid = document.getElementById('scaleGrid');
+
+    function toggleGuide() {
+        const content = document.getElementById('guide-content');
+        content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // 目盛り生成
+    for (let i = 0; i <= 100; i += 10) {
+        const line = document.createElement('div');
+        line.className = 'scale-line';
+        line.style.top = `${100 - i}%`;
+        line.innerHTML = `<span>${i} SUD</span>`;
+        scaleGrid.appendChild(line);
+    }
+
+    // 付箋生成 (12個)
+    for (let i = 0; i < 12; i++) {
+        const note = document.createElement('div');
+        note.className = 'sticky-note';
+        const initialText = i === 0 ? "一番嫌なもの" : i === 1 ? "一番マシなもの" : "";
+        note.innerHTML = `<div class="text-content" contenteditable="false">${initialText}</div><span class="sud-badge">SUD: --</span>`;
+        note.style.left = `${(i % 4) * 160 + 20}px`;
+        note.style.top = `${(Math.floor(i / 4) * 90) + 20}px`;
+        
+        const textContent = note.querySelector('.text-content');
+        textContent.ondblclick = (e) => { e.stopPropagation(); textContent.contentEditable = "true"; textContent.focus(); };
+        textContent.onblur = () => { textContent.contentEditable = "false"; };
+
+        makeDraggable(note);
+        board.appendChild(note);
+        updateSUD(note);
+    }
+
+    function makeDraggable(el) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        el.onmousedown = (e) => {
+            if (el.querySelector('.text-content').contentEditable === "true") return;
+            e.preventDefault();
+            pos3 = e.clientX; pos4 = e.clientY;
+            document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+            document.onmousemove = (e) => {
+                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY;
+                el.style.top = Math.max(0, Math.min(el.offsetTop - pos2, board.offsetHeight - el.offsetHeight)) + "px";
+                el.style.left = Math.max(0, Math.min(el.offsetLeft - pos1, board.offsetWidth - el.offsetWidth)) + "px";
+                updateSUD(el);
+            };
+        };
+    }
+
+    function updateSUD(el) {
+        const sud = Math.round(((board.offsetHeight - el.offsetHeight - el.offsetTop) / (board.offsetHeight - el.offsetHeight)) * 100);
+        const finalSud = Math.max(0, Math.min(100, sud));
+        el.dataset.sud = finalSud;
+        el.querySelector('.sud-badge').innerText = `SUD: ${finalSud}`;
+    }
+
+    function confirmHierarchy() {
+        const notes = Array.from(document.querySelectorAll('.sticky-note'));
+        const data = notes.map(n => ({ text: n.querySelector('.text-content').innerText.trim(), sud: parseInt(n.dataset.sud) }))
+                          .filter(d => d.text !== "").sort((a, b) => b.sud - a.sud);
+        if (data.length === 0) return alert("内容を入力してください");
+        
+        document.getElementById('hierarchyTableBody').innerHTML = data.map(item => `<tr><td class="sud-cell">${item.sud}</td><td>${item.text}</td></tr>`).join('');
+        document.getElementById('board-screen').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+    }
+
+    function showPsychoEdu() {
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('psycho-edu').style.display = 'block';
+    }
+</script>
+</body>
+</html>

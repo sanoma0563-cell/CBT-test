@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Good Things - ポジティブ・トレーニング</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f4f8;
+            color: #2d3748;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 {
+            color: #2b6cb0;
+            font-size: 22px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .description {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 15px;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .date-display {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3182ce;
+            background-color: #fff;
+        }
+        .why-box {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .save-btn:hover {
+            background-color: #2b6cb0;
+        }
+        .history-section {
+            margin-top: 40px;
+            border-top: 2px solid #edf2f7;
+            padding-top: 20px;
+        }
+        .history-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .history-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .history-date {
+            font-weight: bold;
+            color: #3182ce;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Three Good Things</h1>
+    
+    <div class="description">
+        寝る前に「今日あった良かったこと」を3つ書き出し、<strong>なぜそれが起きたか</strong>を振り返りましょう。脳の注意を「充足（ポジティブ）」へ向けるトレーニングになります。
+    </div>
+
+    <div class="date-display" id="today-date"></div>
+
+    <div class="input-group">
+        <label>1. 良かったこと</label>
+        <textarea id="thing1" rows="2" placeholder="例：美味しいコーヒーを飲めた"></textarea>
+        <div class="why-box">なぜそれが起きた？（例：豆を丁寧に挽いたから）</div>
+    </div>
+
+    <div class="input-group">
+        <label>2. 良かったこと</label>
+        <textarea id="thing2" rows="2" placeholder="例：仕事が予定より早く終わった"></textarea>
+        <div class="why-box">なぜそれが起きた？（例：集中タイムを作ったから）</div>
+    </div>
+
+    <div class="input-group">
+        <label>3. 良かったこと</label>
+        <textarea id="thing3" rows="2" placeholder="例：夕焼けが綺麗だった"></textarea>
+        <div class="why-box">なぜそれが起きた？（例：帰り道に空を見上げたから）</div>
+    </div>
+
+    <button class="save-btn" onclick="saveToday()">今日の記録を保存する</button>
+
+    <div class="history-section">
+        <div class="history-title">これまでの記録</div>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<script>
+    // 日付の表示
+    const today = new Date();
+    const dateString = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+    document.getElementById('today-date').innerText = dateString;
+
+    // ローカルストレージから読み込み
+    function loadHistory() {
+        const historyList = document.getElementById('history-list');
+        const data = JSON.parse(localStorage.getItem('threeGoodThings') || '[]');
+        
+        historyList.innerHTML = data.length === 0 ? '<p style="color:#a0aec0; font-size:14px;">記録はまだありません。</p>' : '';
+        
+        data.reverse().forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-date">${item.date}</div>
+                <div>・${item.t1}</div>
+                <div>・${item.t2}</div>
+                <div>・${item.t3}</div>
+            `;
+            historyList.appendChild(div);
+        });
+    }
+
+    // 保存機能
+    function saveToday() {
+        const t1 = document.getElementById('thing1').value;
+        const t2 = document.getElementById('thing2').value;
+        const t3 = document.getElementById('thing3').value;
+
+        if (!t1 || !t2 || !t3) {
+            alert("3つすべて入力してみましょう！小さなことでも大丈夫です。");
+            return;
+        }
+
+        const data = JSON.parse(localStorage.getItem('threeGoodThings') || '[]');
+        
+        // 同じ日のデータがあれば上書き、なければ追加
+        const existingIdx = data.findIndex(item => item.date === dateString);
+        const entry = { date: dateString, t1, t2, t3 };
+
+        if (existingIdx > -1) {
+            data[existingIdx] = entry;
+        } else {
+            data.push(entry);
+        }
+
+        localStorage.setItem('threeGoodThings', JSON.stringify(data));
+        alert("保存しました。今日もお疲れ様でした！");
+        
+        // 入力欄をクリア（任意）
+        loadHistory();
+    }
+
+    // 初期化
+    loadHistory();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>依存症の認知行動療法：実践演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fff7ed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .progress {
+            font-size: 14px;
+            color: #9a3412;
+            background: #ffedd5;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #7c2d12;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #fffcf9;
+            border-left: 5px solid #f97316;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #f3f4f6;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #f97316;
+            background-color: #fff7ed;
+        }
+        .option-btn.correct-choice {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #14532d;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #7f1d1d;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f97316;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "渇望（クレービング）の理解",
+            case: "依存対象を「我慢できないくらい強く欲求すること」を何と呼ぶ？",
+            options: [
+                { text: "A. 習慣化（ハビチュエーション）", correct: false },
+                { text: "B. 渇望（クレービング）", correct: true },
+                { text: "C. 離脱症状", correct: false }
+            ],
+            explanation: "クレービングは、脳の報酬系が特定の刺激に対して過剰に反応し、強い欲求が生じる状態です。"
+        },
+        {
+            title: "「キュー（きっかけ）」への対処",
+            case: "お菓子を食べる依存がある人が「お菓子のストックを目に入らない場所に隠す」のは、どの理論に基づいた行動？",
+            options: [
+                { text: "A. 刺激制御法（キュー・コントロール）", correct: true },
+                { text: "B. 自己報酬法", correct: false },
+                { text: "C. 認知の再構成", correct: false }
+            ],
+            explanation: "依存行動を引き起こす「きっかけ（視覚情報、音、場所など）」を環境から物理的に取り除く手法です。"
+        },
+        {
+            title: "渇望の波（アージ・サーフィン）",
+            case: "強い衝動が起きた時、それに抵抗するのではなく、波に乗るようにやり過ごす考え方は？",
+            options: [
+                { text: "A. 意思の力で無理やり抑え込む", correct: false },
+                { text: "B. 衝動は一時的な『波』であり、いつか必ず引くと理解して観察する", correct: true },
+                { text: "C. 衝動を感じる自分を厳しく叱咤する", correct: false }
+            ],
+            explanation: "アージ・サーフィンは、衝動を消そうとするのではなく、ピークが過ぎるのを待つマインドフルネスな技法です。"
+        },
+        {
+            title: "ハームリダクションの考え方",
+            case: "依存症治療における「ハームリダクション」の目標として適切なのは？",
+            options: [
+                { text: "A. 完璧な断絶（一生やめること）だけを唯一の成功とする", correct: false },
+                { text: "B. 行動を完全にはやめられなくても、その健康被害や社会的な『害』を最小限に抑える", correct: true },
+                { text: "C. 意思が弱いことを認めさせる", correct: false }
+            ],
+            explanation: "資料にもある通り、まずは「やめる」ことよりも、生活習慣の維持や害の低減を段階的に目指す現実的なアプローチです。"
+        },
+        {
+            title: "依存と空腹の違い",
+            case: "お腹は減っていないのに、イライラを解消するために食べてしまう衝動。これは何に基づく行動？",
+            options: [
+                { text: "A. 身体的な空腹（栄養補給）", correct: false },
+                { text: "B. 感情的な衝動（エモーショナル・イーティング）", correct: true },
+                { text: "C. 代謝の低下", correct: false }
+            ],
+            explanation: "依存行動の多くは、空腹を満たすためではなく、不快な感情（イライラ、孤独、不安）を回避するための道具として機能しています。"
+        },
+        {
+            title: "行動の随伴性（ABC分析）",
+            case: "「ストレスを感じる（A）」→「スマホを触り続ける（B）」→「嫌なことを忘れる（C）」。この結果（C）は何を強めている？",
+            options: [
+                { text: "A. 行動の弱化（やめやすくなる）", correct: false },
+                { text: "B. 行動の強化（次もまたやってしまう）", correct: true },
+                { text: "C. 行動の消去", correct: false }
+            ],
+            explanation: "不快な感情が一時的に消えるという「負の強化」によって、依存行動は繰り返されやすくなります。"
+        },
+        {
+            title: "代償行動の用意",
+            case: "依存行動を控えるために、代わりにリラックスできるリスト（散歩、読書など）を作る目的は？",
+            options: [
+                { text: "A. 脳に別の快楽やリラックスを与え、渇望を逸らすため", correct: true },
+                { text: "B. 自分を忙しくさせて疲れさせるため", correct: false },
+                { text: "C. 新しい依存先を作るため", correct: false }
+            ],
+            explanation: "依存対象以外で感情を調整するスキル（コーピング・レパートリー）を増やすことが、再発防止に不可欠です。"
+        },
+        {
+            title: "渇望の高まりへの備え",
+            case: "依存対象を完全に断とうとした際、一時的に欲求がさらに強まる現象。この時期の心得は？",
+            options: [
+                { text: "A. 意思が負けたと諦める", correct: false },
+                { text: "B. 反応性が高まる時期だと理解し、あらかじめ回避策を決めておく", correct: true },
+                { text: "C. 根性で耐え抜く以外の方法は無いと覚悟する", correct: false }
+            ],
+            explanation: "遮断によって一時的に脳が過敏になるのは自然な反応です。この「消去バースト」に備えた計画が必要です。"
+        },
+        {
+            title: "「スリップ（再使用）」への考え方",
+            case: "やめていた行動を一度だけしてしまった時（スリップ）、再開するための健全な捉え方は？",
+            options: [
+                { text: "A. 『もうおしまいだ』と考え、すべてを投げ出す（どうにでもなれ効果）", correct: false },
+                { text: "B. 失敗ではなく『学習の機会』と捉え、何がきっかけだったか分析して今日から再開する", correct: true },
+                { text: "C. 猛烈に反省し、自分を罰する", correct: false }
+            ],
+            explanation: "スリップを「全面的な失敗」と捉えると自暴自棄になりやすいです。再発をプロセスの一部として扱い、軌道修正することが重要です。"
+        },
+        {
+            title: "ADHD等の背景要因",
+            case: "インターネットやスマホ依存において考慮すべき「背景にあるもの」として資料で挙げられているのは？",
+            options: [
+                { text: "A. ADHD（注意欠陥多動性障害）などの特性や二次的な障害", correct: true },
+                { text: "B. 単なる怠け癖", correct: false },
+                { text: "C. デバイスの性能の良さ", correct: false }
+            ],
+            explanation: "依存行動の背後に、衝動性のコントロールの難しさや、現実の対人関係での困りごとが隠れている場合、そちらへの支援も必要です。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× 解説を読んでみよう）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">依存症の認知行動療法ワーク完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                「意志の力」だけでなく「脳の仕組みと行動の仕組み」を理解して、<br>
+                自分自身をマネジメントする視点が得られました。
+            </p>
+            <button class="next-btn" onclick="location.reload()">最初からやり直す</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

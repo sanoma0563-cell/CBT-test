@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脱フュージョン・ワーク演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0fdf4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .progress {
+            font-size: 14px;
+            color: #166534;
+            background: #dcfce7;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #14532d;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #f9fafb;
+            border-left: 5px solid #22c55e;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #f3f4f6;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+        }
+        .option-btn.correct-choice {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #14532d;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #7f1d1d;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "フュージョン状態とは？",
+            case: "「私はダメな人間だ」という思考に囚われ、それが絶対的な真実だと感じて動けなくなっている状態を何と呼ぶ？",
+            options: [
+                { text: "A. 心理的柔軟性", correct: false },
+                { text: "B. 認知的フュージョン（思考との癒着）", correct: true },
+                { text: "C. マインドフル・イーティング", correct: false }
+            ],
+            explanation: "思考と自分がぴったりくっついてしまい、思考を「事実」そのものとして扱ってしまう状態をフュージョンと呼びます。"
+        },
+        {
+            title: "脱フュージョンの目的",
+            case: "脱フュージョンのワークを行う主な目的は？",
+            options: [
+                { text: "A. ネガティブな思考を頭から消し去ること", correct: false },
+                { text: "B. ポジティブな思考に書き換えること", correct: false },
+                { text: "C. 思考を『単なる言葉』として眺め、その影響力を弱めること", correct: true }
+            ],
+            explanation: "思考の内容を変えるのではなく、思考との「関わり方」を変えるのが脱フュージョンの特徴です。"
+        },
+        {
+            title: "「〜という思考を持っている」",
+            case: "「仕事に失敗する」という不安な思考に対し、距離を置くための最も基本的な言い換えは？",
+            options: [
+                { text: "A. 私は『仕事に失敗する』という思考を持っている、と付け加える", correct: true },
+                { text: "B. 絶対に失敗しない、と自分に言い聞かせる", correct: false },
+                { text: "C. 失敗したらどうなるかを詳細に書き出す", correct: false }
+            ],
+            explanation: "文末に「〜という思考を持っている」と付けるだけで、自分自身と思考の間にスペース（距離）が生まれます。"
+        },
+        {
+            title: "思考にラベルを貼る",
+            case: "同じ心配事が繰り返される際、「あ、また『心配モンスター』が出てきたな」と名付ける技法を何と呼ぶ？",
+            options: [
+                { text: "A. 思考のラベリング", correct: true },
+                { text: "B. 自己批判", correct: false },
+                { text: "C. 価値の明確化", correct: false }
+            ],
+            explanation: "思考に名前をつけたり、キャラクター化したりすることで、思考を「自分の一部」ではなく「外部の現象」として扱いやすくなります。"
+        },
+        {
+            title: "歌に乗せる・声を変える",
+            case: "深刻な自己批判「自分は無価値だ」という声を、アニメのキャラクターのような声で再生したり、歌に乗せて歌ってみるワークの効果は？",
+            options: [
+                { text: "A. 自分の性格をふざけて馬鹿にするため", correct: false },
+                { text: "B. 思考の深刻さを奪い、ただの『音の響き』に変えるため", correct: true },
+                { text: "C. 歌唱力を高めて気分転換するため", correct: false }
+            ],
+            explanation: "思考の「形」を崩すことで、その思考が持っていた不快な力や支配力を弱めることができます。"
+        },
+        {
+            title: "思考を「流れる川の葉」に乗せる",
+            case: "イメージワークで、自分の思考を川に流れる葉っぱの上に乗せて、ただ流れていくのを眺める練習は何を養う？",
+            options: [
+                { text: "A. 思考をコントロールして追い出す力", correct: false },
+                { text: "B. 思考をジャッジせずに観察する『観察者の目』", correct: true },
+                { text: "C. 綺麗な景色を想像してリラックスする力", correct: false }
+            ],
+            explanation: "思考を追い出すのではなく、現れては消えていく自然なプロセスとして眺める「マインドフルネス」の視点を養います。"
+        },
+        {
+            title: "「思考に感謝する」",
+            case: "嫌な思考が出てきたとき、「教えてくれてありがとう、脳くん」と声をかける意図は？",
+            options: [
+                { text: "A. 思考と戦うのをやめ、脳が自分を守ろうとしている働きだと認めるため", correct: true },
+                { text: "B. 脳を甘やかして悪い習慣を助長するため", correct: false },
+                { text: "C. 皮肉を言って嫌な気分を紛らわせるため", correct: false }
+            ],
+            explanation: "思考を「敵」として排除しようとすると余計に強まります。感謝して受け流すことで、戦いの連鎖を断ち切ります。"
+        },
+        {
+            title: "パソコンのポップアップ広告",
+            case: "思考を「パソコン画面に勝手に出てくるポップアップ広告」に例えるメリットは？",
+            options: [
+                { text: "A. 広告の内容をすべてクリックして確認しやすくなる", correct: false },
+                { text: "B. 『内容に関わらず、勝手に流れてくるノイズ』として無視しやすくなる", correct: true },
+                { text: "C. ネット環境を整える大切さを学ぶため", correct: false }
+            ],
+            explanation: "思考を「自分の意思」ではなく「自動的なシステム反応」として捉えることで、真に受けない練習になります。"
+        },
+        {
+            title: "脱フュージョン後の行動",
+            case: "脱フュージョンを行い、思考との距離が取れた後にすべき最も大切なことは？",
+            options: [
+                { text: "A. その思考が正しいかどうか論理的に分析する", correct: false },
+                { text: "B. 思考が消えるまでじっと待つ", correct: false },
+                { text: "C. 思考があってもなくても、自分の『価値』に沿った行動をとる", correct: true }
+            ],
+            explanation: "脱フュージョンのゴールは思考を消すことではなく、思考に邪魔されずに「自分が大切にしたい人生の方向」へ進むことです。"
+        },
+        {
+            title: "レモン・レモン・レモン",
+            case: "「レモン」という言葉を1分間高速で連呼すると、最後には意味が消えてただの音に聞こえる現象を利用したワークは？",
+            options: [
+                { text: "A. 意味の飽和を利用した脱フュージョン", correct: true },
+                { text: "B. 記憶力を高めるトレーニング", correct: false },
+                { text: "C. 唾液を出して健康になるためのワーク", correct: false }
+            ],
+            explanation: "言葉を繰り返すことで、言葉が持つ「意味」という魔法を解き、ただの「音（振動）」に戻す強力なワークです。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× 思考との距離をとる方法を考えてみよう）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">脱フュージョン・ワーク完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                思考を「事実」として飲み込むのではなく、客観的に眺めるスキルが身につき始めました。<br>
+                
+            </p>
+            <button class="next-btn" onclick="location.reload()">もう一度挑戦する</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

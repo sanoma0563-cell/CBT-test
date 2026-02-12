@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>やり直し機能付き：弱化を用いない介入プラン演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #fdf6e3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #856404;
+            background: #fff3cd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #b58900;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #fdfcf0;
+            border-left: 5px solid #b58900;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #b58900;
+            background-color: #fffdf5;
+        }
+        /* 正解・不正解のスタイル */
+        .option-btn.correct-choice {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24;
+            opacity: 0.7;
+            cursor: default;
+        }
+        
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #b58900;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "先行条件の操作（きっかけを減らす）",
+            case: "事例：勉強中、スマホの通知が来るとつい触ってしまい、集中が途切れる中学生。弱化を用いない最善の策は？",
+            options: [
+                { text: "A. スマホを触ったら没収すると警告する", correct: false },
+                { text: "B. 勉強中はスマホを電源オフにして別の部屋に置く", correct: true },
+                { text: "C. 根性で通知を無視するよう指導する", correct: false }
+            ],
+            explanation: "「通知」という先行条件を物理的に遮断することで、問題行動が起きる可能性を根本から減らす環境調整です。"
+        },
+        {
+            title: "代替行動の強化（注目機能）",
+            case: "事例：注目を引きたくて授業中にわざとふざける児童に対し、弱化（叱る）を使わない介入は？",
+            options: [
+                { text: "A. ふざけている間は一切反応せず、静かにしている時に褒める", correct: true },
+                { text: "B. 「静かにしなさい」とクラスの前で厳しく注意する", correct: false },
+                { text: "C. 目を合わせて「ダメだよ」と何度も言い聞かせる", correct: false }
+            ],
+            explanation: "ふざけている時に反応すると「注目」という報酬を与えてしまいます。適切な行動（静かに座る）をした時に注目を与える（強化）のが鉄則です。"
+        },
+        {
+            title: "要求訓練（コミュニケーション）",
+            case: "事例：作業が難しくて嫌になると教材を投げてしまう幼児。何を教えるべき？",
+            options: [
+                { text: "A. 投げた教材を全部拾わせるまで帰らせない", correct: false },
+                { text: "B. 投げそうになったら手を握って静止させる", correct: false },
+                { text: "C. 「手伝って」または「休憩」とカードで伝える練習をする", correct: true }
+            ],
+            explanation: "「投げる」という行動で「回避」しようとしています。言葉やカードで適切に「回避・援助」を求めるスキルを教えることが根本解決です。"
+        },
+        {
+            title: "先行条件の提示（視覚化）",
+            case: "事例：急な予定変更でパニックになる人への、弱化を用いない予防策は？",
+            options: [
+                { text: "A. パニックになっても予定は変わらないと厳しく接する", correct: false },
+                { text: "B. スケジュール表に『変更の可能性』をあらかじめ明記しておく", correct: true },
+                { text: "C. パニックが収まるまで静かな場所に隔離する", correct: false }
+            ],
+            explanation: "予測不可能性という先行条件を、視覚的な情報提示で「予測可能」に変えることで、パニックの発生を未然に防ぎます。"
+        },
+        {
+            title: "選択機会の提供",
+            case: "事例：お風呂を嫌がる高齢者。拒否行動（口論）を減らすポジティブな方法は？",
+            options: [
+                { text: "A. 入らないなら食事抜きだと条件を出す", correct: false },
+                { text: "B. 無理に連れて行かず、本人が納得するまで説得し続ける", correct: false },
+                { text: "C. 『石鹸をAとBどちらにしますか？』と選んでもらう", correct: true }
+            ],
+            explanation: "小さなことでも自分で選ぶ（自己決定）機会を作ると、本人のコントロール感が高まり、拒否行動が劇的に減ることがあります。"
+        },
+        {
+            title: "高確率要求シーケンス",
+            case: "事例：片付け指示を無視する子供。協力率を高める工夫は？",
+            options: [
+                { text: "A. 片付けたらお菓子をあげると物で釣る", correct: false },
+                { text: "B. ハイタッチなど、本人が必ず喜んでやる指示を数回してから片付けを促す", correct: true },
+                { text: "C. 片付けるまで遊びを禁止する", correct: false }
+            ],
+            explanation: "「はい」と言いやすい簡単な要求を重ねて、肯定的なリズムを作ってから、本来の指示を出す技法です。"
+        },
+        {
+            title: "環境調整（刺激低減）",
+            case: "事例：雑音にイライラして同僚に怒鳴ってしまう社員への、罰則以外の対応は？",
+            options: [
+                { text: "A. 怒鳴ったら減給などのペナルティを課す", correct: false },
+                { text: "B. 集中できる個室ブースやノイズキャンセリング使用を許可する", correct: true },
+                { text: "C. 精神的な強さを鍛える研修を受けさせる", correct: false }
+            ],
+            explanation: "個人の性格のせいにせず、原因となっている「環境刺激（雑音）」を調整することで、不快感そのものを取り除きます。"
+        },
+        {
+            title: "DRO（他の行動の強化）",
+            case: "事例：自傷行為（手を噛む）がある人への介入として適切なのは？",
+            options: [
+                { text: "A. 手を噛まなかった10分間、好きな音楽を流して褒める", correct: true },
+                { text: "B. 手を噛んだ瞬間に手を強く叩いて制止する", correct: false },
+                { text: "C. 手が届かないよう拘束具をつける", correct: false }
+            ],
+            explanation: "問題行動以外の「適切な状態」を強化し続けることで、相対的に問題行動の頻度を下げていく手法です。"
+        },
+        {
+            title: "タスクの難易度調整",
+            case: "事例：難しい課題で寝てしまう学生への支援プランは？",
+            options: [
+                { text: "A. 寝ていたら放課後に残して終わらせる", correct: false },
+                { text: "B. 課題を細かく分け、1枚終わるごとにチェックマークをつける", correct: true },
+                { text: "C. 寝るのは甘えだと自覚させる", correct: false }
+            ],
+            explanation: "「難しすぎる」という回避の原因を取り除き、スモールステップで「達成感（強化）」を得やすくします。"
+        },
+        {
+            title: "介入のゴール設定",
+            case: "事例：弱化を用いないプランを評価する際、最も重視すべき点は？",
+            options: [
+                { text: "A. 周囲の人がどれだけ静かに過ごせるようになったか", correct: false },
+                { text: "B. 本人が自分の行動をどれだけ反省したか", correct: false },
+                { text: "C. 本人の「できること」が増え、QOLが向上したか", correct: true }
+            ],
+            explanation: "介入の真の目的は、罰による抑制ではなく、適切な行動のレパートリーを増やし、本人が生きやすくすることにあります。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.id = `opt-${i}`;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            // 正解の場合
+            btn.classList.add('correct-choice');
+            // 他の未選択ボタンを無効化
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            // フィードバック表示
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            // 不正解の場合
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× やり直し）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">全問クリア！</h1>
+            <p style="text-align:center; font-size:18px;">弱化を用いない介入プランの考え方を習得しました。</p>
+            <div style="text-align:center; margin-top:30px;">
+                            </div>
+            <button class="next-btn" onclick="location.reload()">最初からやり直す</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>

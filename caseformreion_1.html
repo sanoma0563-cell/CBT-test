@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演習1：不潔強迫の定式化</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-height: 550px; display: flex; flex-direction: column; }
+        h1 { font-size: 20px; text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin-top: 20px; }
+        .msg { font-size: 17px; margin-bottom: 15px; animation: fadeIn 0.4s ease; }
+        .speaker-label { font-weight: bold; font-size: 13px; margin-bottom: 5px; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .label-counselor { background: #e3f2fd; color: #1976d2; }
+        .label-client { background: #fff3e0; color: #e65100; }
+        .label-narration { background: #f5f5f5; color: #616161; border: 1px solid #ddd; }
+        .nav-btns { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        .next-btn { background: #4a6cf7; color: white; flex-grow: 2; }
+        .prev-btn { background: #ced4da; color: #495057; flex-grow: 1; }
+        .options-grid { display: grid; gap: 12px; margin-top: 10px; }
+        .opt-btn { background: #fff; border: 2px solid #4a6cf7; color: #4a6cf7; text-align: left; line-height: 1.4; padding: 15px; }
+        .opt-btn:hover { background: #f0f4ff; border-color: #2c3e50; }
+        .abc-box { background: #fffbe6; border: 1px solid #ffe58f; padding: 15px; border-radius: 8px; font-size: 14px; margin: 10px 0; }
+        .feedback-bad { color: #d32f2f; background: #fff1f0; padding: 10px; border-radius: 5px; border: 1px solid #ffa39e; margin-top: 10px; font-size: 14px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>演習1：不潔強迫のケースフォーミュレーション</h1>
+    <div id="display-area"></div>
+    <div class="nav-btns" id="nav-btns">
+        <button id="prev" class="prev-btn" onclick="goPrev()">戻る</button>
+        <button id="next" class="next-btn" onclick="goNext()">スタート</button>
+    </div>
+</div>
+
+<script>
+    const story = [
+        { id: 0, type: "narration", text: "今回のケースは、不潔強迫に悩むAさんです。外出から戻ると、手がボロボロになるまで洗わなければ気が済みません。以前の治療では無理やり汚いものを触らされて中断しています。" },
+        { id: 1, type: "client", text: "「先生、もう疲れました。汚いものを触るなんて絶対に無理です。前の病院ではパニックになって辞めたんです…。」" },
+        { id: 2, type: "choice", q: "アプローチの選択：", options: [
+            { text: "「強迫を治すには嫌なことも避けてはいけません。再開しましょう。」", next: 3 },
+            { text: "「辛かったですね。まずはAさんが洗浄行動で何を守ろうとしているのか、一緒に理解させてください。」", next: 5 }
+        ]},
+        { id: 3, type: "client", text: "「やっぱりここでも同じことを言うんですね…。もう誰もわかってくれない。」" },
+        { id: 4, type: "narration", text: "【バッドエンド】抵抗が強い事例に標準技法を押し付けてしまいました。これが『落とし穴』です。", isBad: true },
+        { id: 5, type: "client", text: "「守ろうとしているもの…？ 洗っている時だけは『感染の恐怖』から逃げられている気がします。」" },
+        { id: 6, type: "choice", q: "機能分析の深化：", options: [
+            { text: "「洗うことで、その『恐怖』はどの程度解消されますか？」", next: 9 },
+            { text: "「そもそも病気になる確率は低いと思いませんか？」", next: 7 }
+        ]},
+        { id: 7, type: "client", text: "「理屈ではわかっているんです…（Aさんはうなだれてしまいました）」" },
+        { id: 8, type: "narration", text: "【バッドエンド】認知的再構成は、強い不安の前では無力なことが多いです。", isBad: true },
+        { id: 9, type: "client", text: "「洗った直後はスッとします。でも洗面所を出た瞬間にまたループになるんです。」" },
+        { id: 10, type: "choice", q: "定式化の共有：", options: [
+            { text: "「一時的に不安が下がることで洗う行動が『強化』されている。これが仕組みですね？」", next: 11 },
+            { text: "「手がボロボロになるという悪い結果に注目して、やめませんか？」", next: 13 }
+        ]},
+        { id: 11, type: "client", text: "「洗うことは自分にとっての『安全策』。でもそのせいで大切な時間が消えています。」" },
+        { id: 12, type: "narration", text: "【定式化の共有】クライエントが回避行動と価値の喪失のジレンマに気づき始めました。", next: 15 },
+        { id: 13, type: "client", text: "「手が痛いのはわかっています！責めないでください！」" },
+        { id: 14, type: "narration", text: "【バッドエンド】デメリットの強調は、クライエントを防御的にさせます。", isBad: true },
+        { id: 15, type: "abc", a: "不潔感・感染不安", b: "長時間の洗浄・回避", c: "【短期】不安解消、【長期】生活の制限（価値の喪失）" },
+        { id: 16, type: "choice", q: "介入の提案：", options: [
+            { text: "「時間を半分にしましょう。約束です。」", next: 17 },
+            { text: "「浮いた5分で『家族と笑顔で話す』という価値を試してみませんか？」", next: 19 }
+        ]},
+        { id: 17, type: "client", text: "「自信はありません。がっかりさせるのが怖いです…」" },
+        { id: 18, type: "narration", text: "【バッドエンド】目標が価値と紐づいていないため、プレッシャーのみが強まりました。", isBad: true },
+        { id: 19, type: "client", text: "「家族と笑うこと…。5分だけなら、挑戦できるかもしれません。」" },
+        { id: 20, type: "choice", q: "【ファイナル】再発予防：", options: [
+            { text: "「不安な時はこの図を思い出し、回避か価値か、自分に問いかけてみてください。」", next: 21 },
+            { text: "「不安をゼロにするまで、毎日戦い続けましょう。」", next: 23 }
+        ]},
+        { id: 21, type: "client", text: "「私は洗浄マシーンではなく、良い母親でありたい。この図があれば立ち止まれそうです。」" },
+        { id: 22, type: "narration", text: "【演習1完了】定式化の共有が強力なツールになりました。次は持続性抑うつの演習へ進みましょう。", isFinal: true },
+        { id: 23, type: "client", text: "「ゼロにするなんて無理です…。一生戦うなんて絶望的です。」" },
+        { id: 24, type: "narration", text: "【バッドエンド】不安の完全消去を目指すのは、維持要因を強める逆効果になります。", isBad: true }
+    ];
+
+    let currentId = 0;
+
+    function render() {
+        const display = document.getElementById('display-area');
+        const btns = document.getElementById('nav-btns');
+        const nextBtn = document.getElementById('next');
+        const item = story.find(s => s.id === currentId);
+        
+        display.innerHTML = "";
+
+        if (item.type === "choice") {
+            btns.style.display = "none";
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-narration">選択</span><br>${item.q}</div>`;
+            const grid = document.createElement('div');
+            grid.className = "options-grid";
+            item.options.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "opt-btn";
+                b.innerText = opt.text;
+                b.onclick = () => { currentId = opt.next; btns.style.display = "flex"; render(); };
+                grid.appendChild(b);
+            });
+            display.appendChild(grid);
+        } else if (item.type === "abc") {
+            display.innerHTML = `<div class="abc-box"><strong>【定式化】</strong><br>A: ${item.a}<br>B: ${item.b}<br>C: ${item.c}</div>`;
+        } else {
+            const labelMap = { counselor: "カウンセラー", client: "Aさん", narration: "ナレーション" };
+            display.innerHTML = `<div class="msg"><span class="speaker-label label-${item.type}">${labelMap[item.type]}</span><br>${item.text}</div>`;
+            
+            if (item.isBad) {
+                display.innerHTML += `<div class="feedback-bad">やり直しが必要です。</div>`;
+                nextBtn.innerText = "スタートへ戻る";
+            } else if (item.isFinal) {
+                nextBtn.innerText = "次の演習（持続性抑うつ）へ進む";
+            } else {
+                nextBtn.innerText = currentId === 0 ? "スタート" : "つぎへ";
+            }
+        }
+        document.getElementById('prev').disabled = currentId === 0 || item.isBad;
+    }
+
+    function goNext() {
+        const item = story.find(s => s.id === currentId);
+        
+        if (item.isFinal) {
+            // 正しいファイル名に修正しました
+            window.location.href = "caseformreion_2.html";
+            return;
+        }
+
+        if (item.isBad) { 
+            currentId = 0; 
+        } else if (item.next !== undefined) { 
+            currentId = item.next; 
+        } else { 
+            currentId++; 
+        }
+        render();
+    }
+
+    function goPrev() { 
+        if (currentId > 0) { 
+            currentId--; 
+            const prevItem = story.find(s => s.id === currentId);
+            if (prevItem && prevItem.type === "choice") currentId--; 
+            render(); 
+        } 
+    }
+
+    render();
+</script>
+</body>
+</html>

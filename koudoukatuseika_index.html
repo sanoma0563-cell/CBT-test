@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行動活性化・活動記録シート</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            font-size: 24px;
+            border-bottom: 3px solid #81c784;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 活用のポイントボタン */
+        .points-trigger-btn {
+            display: block;
+            margin: 0 auto 20px auto;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #2e7d32;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .points-trigger-btn:hover {
+            background-color: #2e7d32;
+            color: white;
+        }
+
+        .description {
+            background-color: #f1f8e9;
+            padding: 15px;
+            border-left: 5px solid #81c784;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .date-section {
+            text-align: right;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            background-color: #2e7d32;
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #1b5e20;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 0;
+            height: 50px;
+            vertical-align: middle;
+        }
+
+        .input-activity {
+            width: 100%;
+            height: 100%;
+            min-height: 50px;
+            padding: 8px;
+            box-sizing: border-box;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .input-score {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            outline: none;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        /* モーダル（ポップアップ）表示設定 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            width: 90%;
+            max-width: 650px;
+            border-radius: 15px;
+            position: relative;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .point-item {
+            margin-bottom: 20px;
+        }
+
+        .point-item strong {
+            color: #2e7d32;
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            background: #fff9c4;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .no-print { text-align: center; margin-top: 20px; }
+        
+        .print-btn {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media print {
+            .no-print, .points-trigger-btn, .modal { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; }
+            th { background-color: #eee !important; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>行動活性化・活動記録シート</h1>
+
+    <button class="points-trigger-btn no-print" onclick="openModal()">💡 活用のポイントを確認する</button>
+
+    <div class="description">
+        今の「行動」と「気分」を記録して、活動量と気分の関係を見つけていきましょう。<br>
+        各枠内をクリックして直接入力してください。
+    </div>
+
+    <div class="date-section">
+        記録開始日：<input type="date" id="baDate" class="date-input">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 20%;">時間帯</th>
+                <th style="width: 50%;">活動内容</th>
+                <th style="width: 15%;">楽しさ(P)</th>
+                <th style="width: 15%;">達成感(M)</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
+
+    <div class="footer-note">
+        <strong>P(Pleasure)：</strong>楽しさ・心地よさ / <strong>M(Mastery)：</strong>達成感・やり遂げた感<br>
+        ※どんなに小さなこと（顔を洗った、お茶を淹れた等）でも1点として記録に残しましょう。
+    </div>
+
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">この記録表を印刷する</button>
+    </div>
+</div>
+
+<div id="pointsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 style="color: #2e7d32; text-align: center; margin-top: 0;">活用のポイント</h2>
+        
+        <div class="point-item">
+            <strong>1. 悪循環を断つ</strong>
+            うつ病になると「動けないから気分が下がる→さらに動けなくなる」という悪循環に陥ります。このシートで「動いた結果、少しでも楽しさや達成感があったか」を可視化することで、その悪循環を止めるヒントを探します。
+        </div>
+
+        <div class="point-item">
+            <strong>2. P（楽しさ）とM（達成感）の使い分け</strong>
+            <ul>
+                <li><strong>P（楽しさ）:</strong> 趣味、リラックス、美味しいものなど。</li>
+                <li><strong>M（達成感）:</strong> 掃除、仕事のメール、ゴミ出し、着替えなど。</li>
+            </ul>
+            たとえ楽しくなくても「ゴミを出せた」という<strong>M（達成感）</strong>が1でもあれば、それは行動活性化の大きな一歩です。
+        </div>
+
+        <div class="point-item">
+            <strong>3. 小さな一歩（ベイビーステップ）を狙う</strong>
+            記録を数日続けると、「夕方に少し外の空気を吸ったときは、Mが少し高いな」といった傾向が見えてきます。その「少し高い」行動を、次の週にほんの少しだけ増やす計画を立てるのが次のステップです。
+        </div>
+
+        <button class="print-btn" style="width: 100%;" onclick="closeModal()">わかった</button>
+    </div>
+</div>
+
+<script>
+    // テーブル行の生成
+    const hours = ["午前中 (6-9時)", "午前中 (9-12時)", "昼過ぎ (12-15時)", "夕方 (15-18時)", "夜 (18-21時)", "夜・深夜 (21時-)"];
+    const tbody = document.getElementById('table-body');
+    
+    hours.forEach(h => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align:center; background:#f9f9f9; font-size:12px;">${h}</td>
+            <td><div class="input-activity" contenteditable="true"></div></td>
+            <td><div class="input-score" contenteditable="true"></div></td>
+            <td><div class="input-score" contenteditable="true"></div></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // 日付の初期設定
+    window.onload = function() {
+        const today = new Date();
+        document.getElementById("baDate").value = today.toISOString().substr(0, 10);
+    };
+
+    // モーダル制御
+    function openModal() {
+        document.getElementById("pointsModal").style.display = "block";
+    }
+    function closeModal() {
+        document.getElementById("pointsModal").style.display = "none";
+    }
+
+    // 枠外クリックで閉じる
+    window.onclick = function(event) {
+        if (event.target == document.getElementById("pointsModal")) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>

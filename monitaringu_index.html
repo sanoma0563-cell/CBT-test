@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セルフモニタリング・ワーク演習</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #e0f2f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .progress {
+            font-size: 14px;
+            color: #00796b;
+            background: #b2dfdb;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #004d40;
+            margin-bottom: 25px;
+        }
+        .case-box {
+            background-color: #f1f8f7;
+            border-left: 5px solid #009688;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #009688;
+            background-color: #f0fdfa;
+        }
+        .option-btn.correct-choice {
+            background-color: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+            color: #1b5e20;
+            cursor: default;
+        }
+        .option-btn.wrong-choice {
+            background-color: #ffcdd2 !important;
+            border-color: #f44336 !important;
+            color: #b71c1c;
+            opacity: 0.8;
+            cursor: default;
+        }
+        #feedback-area {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s;
+            background-color: #e0f2f1;
+            border: 1px solid #b2dfdb;
+            color: #00695c;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #009688;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="progress">第 <span id="current-num">1</span> 問 / 10 問</div>
+    <h1 id="question-title">タイトル</h1>
+    <div class="case-box" id="case-text">事例テキスト</div>
+    
+    <div class="options" id="options-container"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button class="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "セルフモニタリングの第一歩",
+            case: "セルフモニタリングを始める際、最初に行うべきことは？",
+            options: [
+                { text: "A. 自分の悪い性格を反省する", correct: false },
+                { text: "B. 記録したい行動（標的行動）を具体的・客観的に定義する", correct: true },
+                { text: "C. いきなり高い目標を立てて自分を追い込む", correct: false }
+            ],
+            explanation: "まずは「スマホを触る」「お菓子を食べる」など、誰が見てもわかる形で行動を定義することがスタートです。"
+        },
+        {
+            title: "反応反応（リアクティビティ）の活用",
+            case: "自分の行動を記録するだけで、その行動の頻度が変化する現象を何と呼ぶ？",
+            options: [
+                { text: "A. 反応性（リアクティビティ）", correct: true },
+                { text: "B. 忘却現象", correct: false },
+                { text: "C. プラシーボ効果", correct: false }
+            ],
+            explanation: "人間は自分の行動を記録（意識）するだけで、自然と望ましい方向に抑制や促進が働く「反応性」という性質を持っています。"
+        },
+        {
+            title: "随伴性の把握（先行条件）",
+            case: "「ついスマホを触ってしまう」行動を分析する際、「机の上にスマホがある」という条件は何に当たる？",
+            options: [
+                { text: "A. 結果（Consequence）", correct: false },
+                { text: "B. 行動（Behavior）", correct: false },
+                { text: "C. 先行条件（Antecedent）", correct: true }
+            ],
+            explanation: "行動の直前に起きる、きっかけとなる環境や状況を「先行条件（A）」と呼びます。"
+        },
+        {
+            title: "記録のタイミング",
+            case: "より正確なセルフモニタリングを行うための記録タイミングとして最適なのは？",
+            options: [
+                { text: "A. 行動が起きたらその場ですぐ記録する", correct: true },
+                { text: "B. 1週間分をまとめて週末に思い出す", correct: false },
+                { text: "C. 寝る前に1日を振り返って、だいたいの回数を書く", correct: false }
+            ],
+            explanation: "記憶は曖昧になりやすいため、行動が生じた直後に記録する「リアルタイム記録」が最も精度が高くなります。"
+        },
+        {
+            title: "機能の可視化",
+            case: "「イライラした時に甘いものを食べる」という記録から、「食べると心が落ち着く」ことがわかった。この「心が落ち着く」は行動分析で何？",
+            options: [
+                { text: "A. 嫌な刺激の除去（負の強化）", correct: true },
+                { text: "B. 単なる無駄遣い", correct: false },
+                { text: "C. 行動のきっかけ", correct: false }
+            ],
+            explanation: "不快な気分が消えるという結果が、その後の「食べる」行動を維持・増加させている「負の強化」の構造です。"
+        },
+        {
+            title: "記録ツールの選択",
+            case: "セルフモニタリングを継続させるためのツールの選び方として適切なのは？",
+            options: [
+                { text: "A. 自分が最も使いやすく、常に持ち歩いているもの（スマホアプリ、メモ等）を使う", correct: true },
+                { text: "B. 専門家が使う難しい書式を無理に使う", correct: false },
+                { text: "C. 記録が面倒になるほど詳細な項目を作る", correct: false }
+            ],
+            explanation: "継続が第一なので、記入のハードルを徹底的に下げることが成功の鍵です。"
+        },
+        {
+            title: "頻度の可視化",
+            case: "記録したデータをグラフ化するメリットは？",
+            options: [
+                { text: "A. 変化が視覚的にわかり、モチベーションや気づきにつながる", correct: true },
+                { text: "B. グラフを作る作業自体が治療のすべてだから", correct: false },
+                { text: "C. 誰かに見せて自慢するため", correct: false }
+            ],
+            explanation: "数値やグラフで「見える化」することで、主観的な思い込み（いつもダメだ、など）を修正し、客観的に自分を眺められます。"
+        },
+        {
+            title: "ABC分析の活用",
+            case: "モニタリング中に「夜23時以降（A）」に「SNSを見る（B）」と「夜更かしして翌朝辛い（C）」という連鎖が見えた。どこを変えるのが最も効率的？",
+            options: [
+                { text: "A. 意志の力で我慢する", correct: false },
+                { text: "B. 23時になったらスマホをリビングに置く（Aを変える）", correct: true },
+                { text: "C. 朝辛くても気合で起きる（Cに耐える）", correct: false }
+            ],
+            explanation: "先行条件（A）を調整することで、意思力に頼らず行動（B）をコントロールするのがスマートな戦略です。"
+        },
+        {
+            title: "記録が漏れた時の対処",
+            case: "数日記録を忘れてしまった時の考え方として正しいのは？",
+            options: [
+                { text: "A. 自分はダメだと諦めてやめる", correct: false },
+                { text: "B. 忘れた分は適当に埋める", correct: false },
+                { text: "C. 「記録できなかった」という事実もデータとして受け止め、今日から再開する", correct: true }
+            ],
+            explanation: "完璧主義は挫折の元です。記録できなかった状況（忙しかった、忘れる環境だった等）を分析し、再開することが重要です。"
+        },
+        {
+            title: "セルフモニタリングの終着点",
+            case: "セルフモニタリングを続けることで、最終的に目指す状態は？",
+            options: [
+                { text: "A. 24時間自分を監視し続けること", correct: false },
+                { text: "B. 自分の行動パターンを理解し、自分で自分を導く（セルフマネジメント）能力が高まること", correct: true },
+                { text: "C. 記録を誰かに褒めてもらうこと", correct: false }
+            ],
+            explanation: "自分を客観的に見る「観察者の目」を養い、自律的に生活を整えられるようになることが目的です。"
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = quizData[currentIdx];
+        document.getElementById('current-num').innerText = currentIdx + 1;
+        document.getElementById('question-title').innerText = q.title;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-area').style.display = 'none';
+
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(idx, btn) {
+        const q = quizData[currentIdx];
+        const isCorrect = q.options[idx].correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct-choice');
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const fbArea = document.getElementById('feedback-area');
+            const fbText = document.getElementById('feedback-text');
+            fbArea.style.display = 'block';
+            fbText.innerHTML = `<strong>正解です！</strong><br>${q.explanation}`;
+        } else {
+            btn.classList.add('wrong-choice');
+            btn.disabled = true;
+            btn.innerText += " （× やり直し）";
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        const app = document.getElementById('quiz-app');
+        app.innerHTML = `
+            <h1 style="text-align:center;">セルフモニタリング・ワーク完了！</h1>
+            <p style="text-align:center; font-size:16px; line-height:1.8;">
+                お疲れ様でした！<br>
+                自分の行動を「客観的に測る」スキルが身につきました。<br>
+                この視点を持って、自分自身の生活習慣やクライエントの支援に活かしていきましょう。
+            </p>
+            <button class="next-btn" onclick="location.reload()">もう一度挑戦する</button>
+        `;
+    }
+
+    initQuestion();
+</script>
+
+</body>
+</html>
